@@ -2,7 +2,7 @@
    SERVICE WORKER - LAVA-RÁPIDO PRO PWA
    ========================================================================== */
 
-const CACHE_NAME = 'lava-rapido-v2';
+const CACHE_NAME = 'lava-rapido-v2'; 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
