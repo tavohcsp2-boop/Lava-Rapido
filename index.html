@@ -258,26 +258,60 @@
     let mediaRecorder = null;
     let audioChunks = [];
 
-    // Substitua a linha do GROQ_API_KEY por:
+    <script>
+  let currentPassword = localStorage.getItem('lava_password') || "1234";
+  let dbAtendimentos = [];
+  let mediaRecorder = null;
+  let audioChunks = [];
+
+  let SUPABASE_URL = localStorage.getItem('supabase_url') || "";
+  let SUPABASE_KEY = localStorage.getItem('supabase_key') || "";
+  let GROQ_API_KEY = localStorage.getItem('groq_api_key') || "";
+
+  function saveApiCredentials() {
+    const url = document.getElementById('cfg-supabase-url').value.trim().replace(/\/+$/, "");
+    const key = document.getElementById('cfg-supabase-key').value.trim();
+    const groq = document.getElementById('cfg-groq-key').value.trim();
+
+    if (url && key) {
+      localStorage.setItem('supabase_url', url);
+      localStorage.setItem('supabase_key', key);
+      SUPABASE_URL = url;
+      SUPABASE_KEY = key;
+    }
+
+    if (groq) {
+      localStorage.setItem('groq_api_key', groq);
+      GROQ_API_KEY = groq;
+    }
+
+    alert('Configurações salvas com sucesso!');
+    location.reload();
+  
     let GROQ_API_KEY = localStorage.getItem('groq_api_key') || "";
-
-    // Atualize a função de salvar credenciais:
+    let SUPABASE_URL = localStorage.getItem('supabase_url') || "";
+    let SUPABASE_KEY = localStorage.getItem('supabase_key') || "";
     function saveApiCredentials() {
-      const url = document.getElementById('cfg-supabase-url').value.trim();
-      const key = document.getElementById('cfg-supabase-key').value.trim();
-      const groq = document.getElementById('cfg-groq-key').value.trim();
+  // .replace(/\/+$/, "") remove barras do final da URL automaticamente
+  const url = document.getElementById('cfg-supabase-url').value.trim().replace(/\/+$/, "");
+  const key = document.getElementById('cfg-supabase-key').value.trim();
+  const groq = document.getElementById('cfg-groq-key').value.trim();
 
-      if (url && key) {
-        localStorage.setItem('supabase_url', url);
-        localStorage.setItem('supabase_key', key);
-        SUPABASE_URL = url;
-        SUPABASE_KEY = key;
-        initSupabase();
-      }
+  if (url && key) {
+    localStorage.setItem('supabase_url', url);
+    localStorage.setItem('supabase_key', key);
+    SUPABASE_URL = url;
+    SUPABASE_KEY = key;
+  }
 
-      if (groq) {
-        localStorage.setItem('groq_api_key', groq);
-        GROQ_API_KEY = groq;
+  if (groq) {
+    localStorage.setItem('groq_api_key', groq);
+    GROQ_API_KEY = groq;
+  }
+
+  alert('Configurações salvas com sucesso!');
+  location.reload(); // Recarrega a página para iniciar o Supabase limpo com as novas chaves
+}
       }
 
       alert('Configurações salvas com sucesso!');
