@@ -253,12 +253,6 @@
   </div>
 
   <script>
-    let currentPassword = localStorage.getItem('lava_password') || "1234";
-    let dbAtendimentos = [];
-    let mediaRecorder = null;
-    let audioChunks = [];
-
-    <script>
   let currentPassword = localStorage.getItem('lava_password') || "1234";
   let dbAtendimentos = [];
   let mediaRecorder = null;
@@ -268,6 +262,30 @@
   let SUPABASE_KEY = localStorage.getItem('supabase_key') || "";
   let GROQ_API_KEY = localStorage.getItem('groq_api_key') || "";
 
+  function saveApiCredentials() {
+    const urlInput = document.getElementById('cfg-supabase-url') || document.getElementById('cfg-url');
+    const keyInput = document.getElementById('cfg-supabase-key') || document.getElementById('cfg-key');
+    const groqInput = document.getElementById('cfg-groq-key') || document.getElementById('cfg-groq');
+
+    const url = urlInput ? urlInput.value.trim().replace(/\/+$/, "") : "";
+    const key = keyInput ? keyInput.value.trim() : "";
+    const groq = groqInput ? groqInput.value.trim() : "";
+
+    if (url && key) {
+      localStorage.setItem('supabase_url', url);
+      localStorage.setItem('supabase_key', key);
+      SUPABASE_URL = url;
+      SUPABASE_KEY = key;
+    }
+
+    if (groq) {
+      localStorage.setItem('groq_api_key', groq);
+      GROQ_API_KEY = groq;
+    }
+
+    alert('Configurações salvas com sucesso!');
+    location.reload();
+  }
   function saveApiCredentials() {
     const url = document.getElementById('cfg-supabase-url').value.trim().replace(/\/+$/, "");
     const key = document.getElementById('cfg-supabase-key').value.trim();
