@@ -1,802 +1,187 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="light">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light">
-    <title id="app-title-head">Lava-Rápido & Estética Automotiva</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-dark: #1d4ed8;
-            color-scheme: light !important;
-        }
-        body {
-            background-color: #f1f5f9 !important;
-            color: #1e293b !important;
-        }
-        .bg-primary { background-color: var(--primary-color) !important; }
-        .text-primary { color: var(--primary-color) !important; }
-        .border-primary { border-color: var(--primary-color) !important; }
-        .hover-bg-primary:hover { background-color: var(--primary-dark) !important; }
-    </style>
-</head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lava-Rápido & Estética Automotiva</title>
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-center">
-            <div id="login-logo-container" class="mb-4 flex justify-center">
-                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl shadow-lg">
-                    <i class="fa-solid fa-car-wash"></i>
-                </div>
-            </div>
-            <h2 id="login-app-name" class="text-2xl font-bold text-slate-800 mb-1">Lava-Rápido Pro</h2>
-            <p class="text-sm text-slate-500 mb-6">Digite sua senha de acesso para continuar</p>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <input type="password" id="login-password" placeholder="Senha de acesso" required
-                           class="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center text-lg">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200">
-                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Entrar no Sistema
-                </button>
-            </form>
-            <p id="login-error" class="text-red-500 text-sm mt-3 hidden">Senha incorreta. Tente novamente.</p>
-        </div>
+    <!-- Meta Tags PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LavaRapidoPro">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png">
+
+    <!-- FontAwesome Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SDK Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Estilos CSS Modularizados -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+    <!-- Global Loader Overlay -->
+    <div id="global-loader" style="display: none;">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; font-weight: 600; color: #444;">Carregando...</p>
     </div>
 
-    <!-- CABEÇALHO / HEADER -->
-    <header class="bg-primary text-white shadow-md transition-colors duration-300">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div id="header-logo" class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl font-bold">
-                    <i class="fa-solid fa-car"></i>
-                </div>
-                <div>
-                    <h1 id="app-name-header" class="text-lg font-bold leading-tight">Lava-Rápido Pro</h1>
-                    <p class="text-xs text-blue-100">Gestão Integrada em Tempo Real</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <span id="supabase-status" class="text-xs px-2 py-1 rounded-full bg-amber-500/30 text-amber-100 flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> Offline / Local
-                </span>
-                <button onclick="logout()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-power-off mr-1"></i> Sair
-                </button>
-            </div>
+    <!-- Container Global de Toasts -->
+    <div id="toast-container"></div>
+
+    <!-- Header do App -->
+    <header>
+        <h1 id="app-title"><i class="fa-solid fa-car-wash"></i> Lava-Rápido Pro</h1>
+        <div class="user-badge" id="user-display">
+            <i class="fa-solid fa-user"></i> <span id="current-user-name">Carregando...</span>
+            <button onclick="Auth.logout()" style="background:none; border:none; margin-left:8px; cursor:pointer; color:var(--danger-color);" title="Sair"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
     </header>
 
-    <!-- NAVEGAÇÃO / TABS -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-2 flex overflow-x-auto space-x-1 sm:space-x-4 py-2 no-scrollbar">
-            <button onclick="switchTab('patio')" id="tab-patio" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-2 bg-blue-50 text-blue-600">
-                <i class="fa-solid fa-car-side"></i> Pátio em Tempo Real
-            </button>
-            <button onclick="switchTab('novo')" id="tab-novo" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-2 text-slate-600 hover:bg-slate-100">
-                <i class="fa-solid fa-plus-circle"></i> Nova Entrada
-            </button>
-            <button onclick="switchTab('voz')" id="tab-voz" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-2 text-slate-600 hover:bg-slate-100">
-                <i class="fa-solid fa-microphone"></i> Entrada por Voz (IA)
-            </button>
-            <button onclick="switchTab('crm')" id="tab-crm" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-2 text-slate-600 hover:bg-slate-100">
-                <i class="fa-solid fa-users"></i> Clientes / CRM
-            </button>
-            <button onclick="switchTab('relatorios')" id="tab-relatorios" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-2 text-slate-600 hover:bg-slate-100">
-                <i class="fa-solid fa-chart-line"></i> Relatórios
-            </button>
-            <button onclick="openConsultoriaModal()" id="tab-consultoria" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-2 text-amber-700 bg-amber-50 hover:bg-amber-100">
-                <i class="fa-solid fa-user-gear"></i> Consultoria
-            </button>
-        </div>
-    </nav>
+    <!-- Container Principal -->
+    <main class="container">
+        
+        <!-- Navegação de Abas -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="UI.switchTab('patio')"><i class="fa-solid fa-square-parking"></i> Pátio</button>
+            <button class="tab-btn" onclick="UI.switchTab('entrada-voz')"><i class="fa-solid fa-microphone"></i> Entrada por Voz (IA)</button>
+            <button class="tab-btn" onclick="UI.switchTab('crm')"><i class="fa-solid fa-address-book"></i> Clientes / CRM</button>
+            <button id="tab-btn-relatorios" class="tab-btn" onclick="UI.switchTab('relatorios')"><i class="fa-solid fa-chart-line"></i> Relatórios</button>
+            <button id="tab-btn-consultoria" class="tab-btn" onclick="UI.switchTab('consultoria')"><i class="fa-solid fa-user-gear"></i> Consultoria</button>
+        </nav>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
-
-        <!-- ABA 1: PÁTIO -->
-        <section id="sec-patio" class="tab-content space-y-6">
-            <!-- CARDS DE ESTATÍSTICAS DA OPERAÇÃO -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-medium text-slate-500 uppercase">No Pátio</p>
-                    <h3 id="stat-patio" class="text-2xl font-bold text-amber-600">0</h3>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-medium text-slate-500 uppercase">Em Lavagem</p>
-                    <h3 id="stat-lavando" class="text-2xl font-bold text-blue-600">0</h3>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-medium text-slate-500 uppercase">Concluídos</p>
-                    <h3 id="stat-concluido" class="text-2xl font-bold text-emerald-600">0</h3>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-medium text-slate-500 uppercase">Faturamento do Dia</p>
-                    <h3 id="stat-faturamento" class="text-2xl font-bold text-slate-800">R$ 0,00</h3>
-                </div>
+        <!-- Aba 1: Pátio -->
+        <section id="tab-patio" class="tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>Veículos no Pátio</h2>
+                <button class="btn btn-primary" onclick="UI.showNovoAtendimentoModal(true)"><i class="fa-solid fa-plus"></i> Nova Entrada / OS</button>
             </div>
-
-            <!-- FILTROS DO PÁTIO -->
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                    <button onclick="filterPatio('todos')" class="filter-btn text-xs px-3 py-1.5 rounded-lg border font-medium bg-slate-800 text-white whitespace-nowrap">Todos</button>
-                    <button onclick="filterPatio('No Pátio')" class="filter-btn text-xs px-3 py-1.5 rounded-lg border font-medium text-slate-600 hover:bg-slate-50 whitespace-nowrap">🟡 No Pátio</button>
-                    <button onclick="filterPatio('Em Lavagem')" class="filter-btn text-xs px-3 py-1.5 rounded-lg border font-medium text-slate-600 hover:bg-slate-50 whitespace-nowrap">🔵 Em Lavagem</button>
-                    <button onclick="filterPatio('Concluído')" class="filter-btn text-xs px-3 py-1.5 rounded-lg border font-medium text-slate-600 hover:bg-slate-50 whitespace-nowrap">🟢 Concluídos</button>
-                </div>
-                <input type="text" id="patio-search" oninput="renderPatio()" placeholder="Buscar por placa, modelo ou cliente..."
-                       class="w-full sm:w-64 px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <!-- GRID DOS VEÍCULOS NO PÁTIO -->
-            <div id="patio-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Cartões dinâmicos via JS -->
+            <div id="patio-grid" class="cards-grid">
+                <!-- Carregado via JS -->
             </div>
         </section>
 
-        <!-- ABA 2: NOVA ENTRADA -->
-        <section id="sec-novo" class="tab-content hidden max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-car"></i> Nova Entrada de Veículo
-            </h2>
-            <form id="form-entrada" onsubmit="handleNovaEntrada(event)" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Placa do Veículo *</label>
-                        <input type="text" id="ent-placa" required placeholder="ABC1D23"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg uppercase bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Modelo / Veículo *</label>
-                        <input type="text" id="ent-modelo" required placeholder="Ex: Civic Cinza"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Cliente</label>
-                        <input type="text" id="ent-cliente" placeholder="Ex: João Silva"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Telefone / WhatsApp</label>
-                        <input type="tel" id="ent-telefone" placeholder="(11) 99999-9999"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Serviço *</label>
-                        <select id="ent-servico" required onchange="autoFillValor()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                            <option value="Ducha / Rápida">Ducha / Rápida</option>
-                            <option value="Lavagem Simples">Lavagem Simples</option>
-                            <option value="Lavagem Completa">Lavagem Completa</option>
-                            <option value="Higienização Interna">Higienização Interna</option>
-                            <option value="Polimento / Cristalização">Polimento / Cristalização</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$) *</label>
-                        <input type="number" id="ent-valor" step="0.01" required placeholder="50.00"
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Status Inicial *</label>
-                        <select id="ent-status" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                            <option value="No Pátio" selected>🟡 No Pátio</option>
-                            <option value="Em Lavagem">🔵 Em Lavagem</option>
-                            <option value="Concluído">🟢 Concluído</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Observações / Avarias</label>
-                    <textarea id="ent-obs" rows="2" placeholder="Arranhão no para-choque, pertences no porta-malas..."
-                              class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-
-                <button type="submit" class="w-full bg-primary hover-bg-primary text-white font-semibold py-3 rounded-lg shadow transition duration-200 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i> Registrar Entrada do Veículo
-                </button>
-            </form>
-        </section>
-
-        <!-- ABA 3: ENTRADA POR VOZ (GROQ IA) -->
-        <section id="sec-voz" class="tab-content hidden max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
-            <div class="mb-4">
-                <span class="inline-block p-3 bg-blue-100 text-blue-600 rounded-full text-2xl mb-2">
-                    <i class="fa-solid fa-microphone-lines"></i>
-                </span>
-                <h2 class="text-xl font-bold text-slate-800">Entrada Inteligente por Voz (Groq IA)</h2>
-                <p class="text-xs text-slate-500 mt-1">Fale instruções do tipo: <em>"Dá entrada no Civic cinza placa ABC1234 lavagem completa do João"</em></p>
-            </div>
-
-            <!-- CHAVE API GROQ -->
-            <div class="mb-6 text-left bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Chave da API Groq (Whisper)</label>
-                <input type="password" id="groq-api-key" placeholder="gsk_..."
-                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 focus:ring-2 focus:ring-blue-500">
-                <p class="text-[10px] text-slate-400 mt-1">A chave é salva com segurança no seu próprio navegador.</p>
-            </div>
-
-            <!-- BOTÃO DE GRAVAÇÃO -->
-            <div class="my-6">
-                <button id="btn-record" onclick="toggleAudioRecording()"
-                        class="w-24 h-24 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg flex items-center justify-center mx-auto transition-all transform active:scale-95">
-                    <i id="mic-icon" class="fa-solid fa-microphone text-3xl"></i>
-                </button>
-                <p id="record-status" class="text-xs font-semibold text-slate-600 mt-3">Clique no microfone para falar</p>
-            </div>
-
-            <!-- RESULTADO E TRANSCRIÇÃO -->
-            <div id="voice-result-box" class="hidden text-left bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 class="text-xs font-bold text-blue-800 uppercase mb-1">Transcrição & IA:</h4>
-                <p id="voice-transcription" class="text-sm text-slate-700 italic mb-3">"..."</p>
-                <button onclick="applyVoiceDataToForm()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-lg">
-                    Preencher Formulário de Entrada
-                </button>
+        <!-- Aba 2: Entrada por Voz (IA) -->
+        <section id="tab-entrada-voz" class="tab-content">
+            <h2>Cadastrar Atendimento por Voz</h2>
+            <p style="color: var(--secondary-color); margin-bottom: 15px;">Grave as informações do veículo e serviço para preenchimento via Inteligência Artificial.</p>
+            <div class="card">
+                <button id="btn-record-voice" class="btn btn-primary"><i class="fa-solid fa-microphone"></i> Iniciar Gravação</button>
+                <div id="voice-transcript" style="margin-top: 15px; font-style: italic; color: #555;"></div>
             </div>
         </section>
 
-        <!-- ABA 4: CLIENTES / CRM -->
-        <section id="sec-crm" class="tab-content hidden space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-address-book"></i> Histórico & CRM de Clientes
-                </h2>
-                <input type="text" id="crm-search" oninput="renderCRM()" placeholder="Pesquisar por cliente, telefone ou placa..."
-                       class="w-full sm:w-64 px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <!-- Aba 3: Clientes / CRM -->
+        <section id="tab-crm" class="tab-content">
+            <h2>Base de Clientes & CRM</h2>
+            <div class="form-group" style="margin-top: 15px;">
+                <input type="text" id="search-crm" class="form-control" placeholder="Pesquisar por cliente, telefone ou placa..." onkeyup="UI.autoPreencherCliente(this.value)">
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase">
-                            <th class="p-3">Cliente</th>
-                            <th class="p-3">Telefone</th>
-                            <th class="p-3">Veículo / Placa</th>
-                            <th class="p-3">Último Serviço</th>
-                            <th class="p-3">Total Gasto</th>
-                            <th class="p-3 text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="crm-table-body">
-                        <!-- Linhas dinâmicas via JS -->
-                    </tbody>
-                </table>
+            <div id="crm-list" class="cards-grid">
+                <!-- Lista de clientes CRM -->
             </div>
         </section>
 
-        <!-- ABA 5: RELATÓRIOS -->
-        <section id="sec-relatorios" class="tab-content hidden space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-pie"></i> Resumo Financeiro da Operação
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                        <p class="text-xs text-emerald-600 font-semibold uppercase">Total Concluído</p>
-                        <h3 id="rel-total-faturado" class="text-2xl font-bold text-emerald-800">R$ 0,00</h3>
-                    </div>
-                    <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p class="text-xs text-amber-600 font-semibold uppercase">Pendente (Em Lavagem / Pátio)</p>
-                        <h3 id="rel-total-pendente" class="text-2xl font-bold text-amber-800">R$ 0,00</h3>
-                    </div>
-                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p class="text-xs text-blue-600 font-semibold uppercase">Atendimentos Totais</p>
-                        <h3 id="rel-atendimentos-count" class="text-2xl font-bold text-blue-800">0</h3>
-                    </div>
+        <!-- Aba 4: Relatórios (Exclusivo Gerente/Admin) -->
+        <section id="tab-relatorios" class="tab-content">
+            <h2>Resumo Financeiro & Operacional</h2>
+            <div id="reports-summary" class="cards-grid" style="margin-top: 15px;">
+                <div class="card">
+                    <h3>Faturamento Hoje</h3>
+                    <p id="stat-revenue" style="font-size: 1.5rem; font-weight: bold; color: var(--success-color);">R$ 0,00</p>
+                </div>
+                <div class="card">
+                    <h3>Atendimentos Concluídos</h3>
+                    <p id="stat-completed" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">0</p>
                 </div>
             </div>
         </section>
 
-        <!-- ABA 6: CONSULTORIA (PAINEL OCULTO / WHITELABEL) -->
-        <section id="sec-consultoria" class="tab-content hidden max-w-3xl mx-auto space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex items-center justify-between mb-4 border-b pb-3">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-amber-600"></i> Painel de Consultoria & Whitelabel
-                    </h2>
-                    <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">
-                        Acesso Restrito Liberado
-                    </span>
+        <!-- Aba 5: Consultoria / Whitelabel (Exclusivo Admin) -->
+        <section id="tab-consultoria" class="tab-content">
+            <h2>Painel da Consultoria / Personalização</h2>
+            <div class="card" style="margin-top: 15px;">
+                <h3>Identidade Visual & Configurações</h3>
+                <div class="form-group" style="margin-top: 10px;">
+                    <label for="input-app-name">Nome do Estabelecimento:</label>
+                    <input type="text" id="input-app-name" class="form-control" value="Lava-Rápido Pro">
                 </div>
-
-                <div class="space-y-6">
-                    <!-- PERSONALIZAÇÃO DE MARCA -->
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-paint-roller"></i> Identidade Visual do Estabelecimento
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Estabelecimento</label>
-                                <input type="text" id="cfg-app-name" placeholder="Ex: Auto Brilho Estética"
-                                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Cor Primária do Tema</label>
-                                <input type="color" id="cfg-primary-color" class="w-full h-10 border border-slate-300 rounded-lg p-1 cursor-pointer bg-white">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- BANCO DE DADOS SUPABASE -->
-                    <div class="border-t pt-4">
-                        <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-database"></i> Conexão Supabase (Nuvem / Realtime)
-                        </h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Supabase Project URL</label>
-                                <input type="text" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co"
-                                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Supabase Anon Key</label>
-                                <input type="password" id="cfg-supabase-key" placeholder="eyJ..."
-                                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SENHA DA CONSULTORIA -->
-                    <div class="border-t pt-4">
-                        <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-key"></i> Redefinir Senha da Consultoria
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Nova Senha da Consultoria</label>
-                                <input type="password" id="cfg-new-consultoria-pass" placeholder="Definir nova senha"
-                                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Senha Padrão de Login do App</label>
-                                <input type="password" id="cfg-new-app-pass" placeholder="Senha do dia a dia (Padrão: 1234)"
-                                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button onclick="saveConsultoriaConfig()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg shadow transition duration-200">
-                        <i class="fa-solid fa-floppy-disk mr-2"></i> Salvar Configurações da Consultoria
-                    </button>
-                </div>
+                <button class="btn btn-success" onclick="UI.saveSettings()">Salvar Alterações</button>
             </div>
         </section>
 
     </main>
 
-    <!-- MODAL DE SENHA PARA CONSULTORIA -->
-    <div id="modal-consultoria-auth" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
-                <i class="fa-solid fa-lock"></i>
+    <!-- Modal de Nova Entrada / Ordem de Serviço -->
+    <div id="modal-atendimento" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2><i class="fa-solid fa-car"></i> Nova Entrada (OS)</h2>
+                <button onclick="UI.showNovoAtendimentoModal(false)" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
             </div>
-            <h3 class="text-lg font-bold text-slate-800 mb-1">Acesso à Consultoria</h3>
-            <p class="text-xs text-slate-500 mb-4">Digite a senha do consultor para prosseguir</p>
-            <input type="password" id="input-consultoria-pass" placeholder="Digite a senha"
-                   class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center mb-3 bg-white text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
-            <p id="consultoria-pass-error" class="text-xs text-red-500 hidden mb-3">Senha incorreta!</p>
-            <div class="flex gap-2">
-                <button onclick="closeConsultoriaModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 rounded-lg">Cancelar</button>
-                <button onclick="verifyConsultoriaPass()" class="w-1/2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 rounded-lg">Acessar</button>
-            </div>
+            <form id="form-novo-atendimento">
+                <div class="form-group">
+                    <label for="os-placa">Placa do Veículo *</label>
+                    <input type="text" id="os-placa" class="form-control" placeholder="ABC-1234 ou ABC1D23" required onblur="UI.autoPreencherCliente(this.value)" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="os-modelo">Modelo do Veículo</label>
+                    <input type="text" id="os-modelo" class="form-control" placeholder="Ex: Honda Civic Preto">
+                </div>
+                <div class="form-group">
+                    <label for="os-cliente">Nome do Cliente</label>
+                    <input type="text" id="os-cliente" class="form-control" placeholder="Nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="os-telefone">WhatsApp / Telefone</label>
+                    <input type="text" id="os-telefone" class="form-control" placeholder="(11) 99999-9999">
+                </div>
+                <div class="form-group">
+                    <label for="os-valor">Valor Estimado (R$)</label>
+                    <input type="number" step="0.01" id="os-valor" class="form-control" placeholder="50.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="os-obs">Observações</label>
+                    <textarea id="os-obs" class="form-control" rows="2" placeholder="Pertences no porta-malas, arranhões prévios..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="button" class="btn btn-secondary" onclick="UI.showNovoAtendimentoModal(false)" style="flex:1;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Cadastrar Entrada</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- JAVASCRIPT PRINCIPAL -->
-    <script>
-        // CONFIGURAÇÕES E ESTADO LOCAL
-        let appConfig = {
-            appName: localStorage.getItem('cfg_appName') || 'Lava-Rápido Pro',
-            primaryColor: localStorage.getItem('cfg_primaryColor') || '#2563eb',
-            consultoriaPass: localStorage.getItem('cfg_consultoriaPass') || 'DV 1206',
-            appPass: localStorage.getItem('cfg_appPass') || '1234',
-            supabaseUrl: localStorage.getItem('cfg_supabaseUrl') || '',
-            supabaseKey: localStorage.getItem('cfg_supabaseKey') || ''
-        };
+    <!-- Modal de Login -->
+    <div id="modal-login" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 15px; text-align: center;"><i class="fa-solid fa-lock"></i> Acesso ao Sistema</h2>
+            <form id="form-login">
+                <div class="form-group">
+                    <label for="login-email">E-mail</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Senha</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="******" required>
+                </div>
+                <button type="submit" id="btn-submit-login" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    Entrar no Sistema
+                </button>
+            </form>
+        </div>
+    </div>
 
-        let supabaseClient = null;
-        let veiculos = JSON.parse(localStorage.getItem('lr_veiculos')) || [];
-        let currentFilter = 'todos';
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let extractedVoiceData = null;
-
-        // INICIALIZAÇÃO
-        window.addEventListener('DOMContentLoaded', () => {
-            applyThemeConfig();
-            initSupabase();
-            renderPatio();
-            renderCRM();
-            updateStats();
-            
-            // Preencher campos da consultoria
-            document.getElementById('cfg-app-name').value = appConfig.appName;
-            document.getElementById('cfg-primary-color').value = appConfig.primaryColor;
-            document.getElementById('cfg-supabase-url').value = appConfig.supabaseUrl;
-            document.getElementById('cfg-supabase-key').value = appConfig.supabaseKey;
-            
-            const savedGroqKey = localStorage.getItem('cfg_groqKey');
-            if (savedGroqKey) document.getElementById('groq-api-key').value = savedGroqKey;
-        });
-
-        // LOGIN E AUTENTICAÇÃO
-        function handleLogin(e) {
-            e.preventDefault();
-            const pass = document.getElementById('login-password').value;
-            if (pass === appConfig.appPass || pass.replace(/\s+/g, '').toUpperCase() === 'DV1206' || pass === appConfig.consultoriaPass) {
-                document.getElementById('login-screen').classList.add('hidden');
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        }
-
-        function logout() {
-            document.getElementById('login-password').value = '';
-            document.getElementById('login-screen').classList.remove('hidden');
-        }
-
-        // TABS E NAVEGAÇÃO
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-50', 'text-blue-600');
-                btn.classList.add('text-slate-600');
-            });
-
-            const activeTab = document.getElementById(`sec-${tabId}`);
-            if (activeTab) activeTab.classList.remove('hidden');
-
-            const activeBtn = document.getElementById(`tab-${tabId}`);
-            if (activeBtn) {
-                activeBtn.classList.add('bg-blue-50', 'text-blue-600');
-                activeBtn.classList.remove('text-slate-600');
-            }
-
-            if (tabId === 'crm') renderCRM();
-            if (tabId === 'relatorios') renderRelatorios();
-        }
-
-        // MODAL E AUTENTICAÇÃO CONSULTORIA (SENHA DV 1206)
-        function openConsultoriaModal() {
-            document.getElementById('input-consultoria-pass').value = '';
-            document.getElementById('consultoria-pass-error').classList.add('hidden');
-            document.getElementById('modal-consultoria-auth').classList.remove('hidden');
-        }
-
-        function closeConsultoriaModal() {
-            document.getElementById('modal-consultoria-auth').classList.add('hidden');
-        }
-
-        function verifyConsultoriaPass() {
-            const typed = document.getElementById('input-consultoria-pass').value.trim();
-            const cleanTyped = typed.replace(/\s+/g, '').toUpperCase();
-            const cleanSaved = appConfig.consultoriaPass.replace(/\s+/g, '').toUpperCase();
-
-            if (cleanTyped === 'DV1206' || cleanTyped === cleanSaved) {
-                closeConsultoriaModal();
-                switchTab('consultoria');
-            } else {
-                document.getElementById('consultoria-pass-error').classList.remove('hidden');
-            }
-        }
-
-        function saveConsultoriaConfig() {
-            const newName = document.getElementById('cfg-app-name').value;
-            const newColor = document.getElementById('cfg-primary-color').value;
-            const newSupUrl = document.getElementById('cfg-supabase-url').value;
-            const newSupKey = document.getElementById('cfg-supabase-key').value;
-            const newConsPass = document.getElementById('cfg-new-consultoria-pass').value;
-            const newAppPass = document.getElementById('cfg-new-app-pass').value;
-
-            if (newName) { appConfig.appName = newName; localStorage.setItem('cfg_appName', newName); }
-            if (newColor) { appConfig.primaryColor = newColor; localStorage.setItem('cfg_primaryColor', newColor); }
-            if (newSupUrl) { appConfig.supabaseUrl = newSupUrl; localStorage.setItem('cfg_supabaseUrl', newSupUrl); }
-            if (newSupKey) { appConfig.supabaseKey = newSupKey; localStorage.setItem('cfg_supabaseKey', newSupKey); }
-            if (newConsPass) { appConfig.consultoriaPass = newConsPass; localStorage.setItem('cfg_consultoriaPass', newConsPass); }
-            if (newAppPass) { appConfig.appPass = newAppPass; localStorage.setItem('cfg_appPass', newAppPass); }
-
-            applyThemeConfig();
-            initSupabase();
-            alert('Configurações salvas com sucesso!');
-        }
-
-        function applyThemeConfig() {
-            document.getElementById('app-name-header').innerText = appConfig.appName;
-            document.getElementById('login-app-name').innerText = appConfig.appName;
-            document.getElementById('app-title-head').innerText = appConfig.appName;
-            document.documentElement.style.setProperty('--primary-color', appConfig.primaryColor);
-        }
-
-        // SUPABASE REALTIME
-        function initSupabase() {
-            if (appConfig.supabaseUrl && appConfig.supabaseKey && window.supabase) {
-                try {
-                    supabaseClient = window.supabase.createClient(appConfig.supabaseUrl, appConfig.supabaseKey);
-                    document.getElementById('supabase-status').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Supabase Conectado';
-                    document.getElementById('supabase-status').className = 'text-xs px-2 py-1 rounded-full bg-emerald-500/30 text-emerald-100 flex items-center gap-1';
-                    syncSupabaseData();
-                } catch (err) {
-                    console.error("Erro Supabase:", err);
-                }
-            }
-        }
-
-        async function syncSupabaseData() {
-            if (!supabaseClient) return;
-            const { data, error } = await supabaseClient.from('veiculos').select('*');
-            if (!error && data) {
-                veiculos = data;
-                localStorage.setItem('lr_veiculos', JSON.stringify(veiculos));
-                renderPatio();
-                updateStats();
-            }
-        }
-
-        // NOVO VEÍCULO
-        async function handleNovaEntrada(e) {
-            e.preventDefault();
-            const novo = {
-                id: 'v_' + Date.now(),
-                placa: document.getElementById('ent-placa').value.toUpperCase().trim(),
-                modelo: document.getElementById('ent-modelo').value.trim(),
-                cliente: document.getElementById('ent-cliente').value.trim() || 'Cliente Balcão',
-                telefone: document.getElementById('ent-telefone').value.trim(),
-                servico: document.getElementById('ent-servico').value,
-                valor: parseFloat(document.getElementById('ent-valor').value) || 0,
-                status: document.getElementById('ent-status').value,
-                obs: document.getElementById('ent-obs').value,
-                entrada: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                data: new Date().toISOString()
-            };
-
-            veiculos.unshift(novo);
-            localStorage.setItem('lr_veiculos', JSON.stringify(veiculos));
-
-            if (supabaseClient) {
-                await supabaseClient.from('veiculos').insert([novo]);
-            }
-
-            document.getElementById('form-entrada').reset();
-            switchTab('patio');
-            renderPatio();
-            updateStats();
-        }
-
-        function autoFillValor() {
-            const serv = document.getElementById('ent-servico').value;
-            const valInput = document.getElementById('ent-valor');
-            const tabelaValores = {
-                'Ducha / Rápida': 30,
-                'Lavagem Simples': 50,
-                'Lavagem Completa': 80,
-                'Higienização Interna': 180,
-                'Polimento / Cristalização': 250
-            };
-            if (tabelaValores[serv]) valInput.value = tabelaValores[serv].toFixed(2);
-        }
-
-        // STATUS E PÁTIO
-        function filterPatio(status) {
-            currentFilter = status;
-            renderPatio();
-        }
-
-        async function updateVehicleStatus(id, newStatus) {
-            const idx = veiculos.findIndex(v => v.id === id);
-            if (idx !== -1) {
-                veiculos[idx].status = newStatus;
-                localStorage.setItem('lr_veiculos', JSON.stringify(veiculos));
-
-                if (supabaseClient) {
-                    await supabaseClient.from('veiculos').update({ status: newStatus }).eq('id', id);
-                }
-                renderPatio();
-                updateStats();
-            }
-        }
-
-        function renderPatio() {
-            const grid = document.getElementById('patio-grid');
-            const search = document.getElementById('patio-search').value.toLowerCase();
-            grid.innerHTML = '';
-
-            const list = veiculos.filter(v => {
-                const matchStatus = currentFilter === 'todos' || v.status === currentFilter;
-                const matchSearch = v.placa.toLowerCase().includes(search) || 
-                                    v.modelo.toLowerCase().includes(search) || 
-                                    v.cliente.toLowerCase().includes(search);
-                return matchStatus && matchSearch;
-            });
-
-            if (list.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">Nenhum veículo encontrado no pátio.</div>`;
-                return;
-            }
-
-            list.forEach(v => {
-                let badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
-                if (v.status === 'Em Lavagem') badgeClass = 'bg-blue-100 text-blue-800 border-blue-300';
-                if (v.status === 'Concluído') badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
-
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-4 relative flex flex-col justify-between';
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-xl font-extrabold tracking-wider bg-slate-100 text-slate-800 px-2.5 py-1 rounded border border-slate-300">${v.placa}</span>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded-full border ${badgeClass}">${v.status}</span>
-                        </div>
-                        <h4 class="font-bold text-slate-800 text-base">${v.modelo}</h4>
-                        <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-user text-slate-400 mr-1"></i> ${v.cliente} ${v.telefone ? `(${v.telefone})` : ''}</p>
-                        <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded mb-3">
-                            <p><strong>Serviço:</strong> ${v.servico}</p>
-                            <p><strong>Valor:</strong> R$ ${v.valor.toFixed(2)}</p>
-                            ${v.obs ? `<p class="italic text-slate-500 mt-1">"${v.obs}"</p>` : ''}
-                        </div>
-                    </div>
-                    
-                    <!-- BOTOES DE MUDANÇA DE STATUS RÁPIDA -->
-                    <div class="pt-2 border-t border-slate-100">
-                        <p class="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Alterar Status:</p>
-                        <div class="grid grid-cols-3 gap-1">
-                            <button onclick="updateVehicleStatus('${v.id}', 'No Pátio')" class="text-xs py-1 rounded border ${v.status === 'No Pátio' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}">🟡 Pátio</button>
-                            <button onclick="updateVehicleStatus('${v.id}', 'Em Lavagem')" class="text-xs py-1 rounded border ${v.status === 'Em Lavagem' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}">🔵 Lavando</button>
-                            <button onclick="updateVehicleStatus('${v.id}', 'Concluído')" class="text-xs py-1 rounded border ${v.status === 'Concluído' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}">🟢 Pronto</button>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function updateStats() {
-            const patioCount = veiculos.filter(v => v.status === 'No Pátio').length;
-            const lavandoCount = veiculos.filter(v => v.status === 'Em Lavagem').length;
-            const concluidoCount = veiculos.filter(v => v.status === 'Concluído').length;
-            const faturamento = veiculos.filter(v => v.status === 'Concluído').reduce((acc, v) => acc + (v.valor || 0), 0);
-
-            document.getElementById('stat-patio').innerText = patioCount;
-            document.getElementById('stat-lavando').innerText = lavandoCount;
-            document.getElementById('stat-concluido').innerText = concluidoCount;
-            document.getElementById('stat-faturamento').innerText = `R$ ${faturamento.toFixed(2)}`;
-        }
-
-        // CRM & RELATÓRIOS
-        function renderCRM() {
-            const tbody = document.getElementById('crm-table-body');
-            const search = document.getElementById('crm-search').value.toLowerCase();
-            tbody.innerHTML = '';
-
-            const list = veiculos.filter(v => 
-                v.cliente.toLowerCase().includes(search) || 
-                v.placa.toLowerCase().includes(search) || 
-                (v.telefone && v.telefone.includes(search))
-            );
-
-            list.forEach(v => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-100 hover:bg-slate-50';
-                tr.innerHTML = `
-                    <td class="p-3 font-semibold text-slate-800">${v.cliente}</td>
-                    <td class="p-3 text-slate-600">${v.telefone || '-'}</td>
-                    <td class="p-3"><span class="font-bold bg-slate-100 px-2 py-0.5 rounded">${v.placa}</span> - ${v.modelo}</td>
-                    <td class="p-3 text-slate-600">${v.servico}</td>
-                    <td class="p-3 font-bold text-slate-700">R$ ${v.valor.toFixed(2)}</td>
-                    <td class="p-3 text-center">
-                        ${v.telefone ? `<a href="https://wa.me/55${v.telefone.replace(/\D/g,'')}?text=Olá%20${encodeURIComponent(v.cliente)},%20seu%20veículo%20${v.placa}%20está%20pronto!" target="_blank" class="text-emerald-600 hover:text-emerald-700 font-bold"><i class="fa-brands fa-whatsapp text-lg"></i></a>` : '-'}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderRelatorios() {
-            const totalFaturado = veiculos.filter(v => v.status === 'Concluído').reduce((acc, v) => acc + (v.valor || 0), 0);
-            const totalPendente = veiculos.filter(v => v.status !== 'Concluído').reduce((acc, v) => acc + (v.valor || 0), 0);
-
-            document.getElementById('rel-total-faturado').innerText = `R$ ${totalFaturado.toFixed(2)}`;
-            document.getElementById('rel-total-pendente').innerText = `R$ ${totalPendente.toFixed(2)}`;
-            document.getElementById('rel-atendimentos-count').innerText = veiculos.length;
-        }
-
-        // VOZ / GROQ IA INTEGRATION
-        async function toggleAudioRecording() {
-            const key = document.getElementById('groq-api-key').value.trim();
-            if (!key) {
-                alert('Por favor, insira sua chave da API Groq!');
-                return;
-            }
-            localStorage.setItem('cfg_groqKey', key);
-
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                document.getElementById('record-status').innerText = 'Processando áudio com IA...';
-                document.getElementById('mic-icon').className = 'fa-solid fa-spinner fa-spin text-3xl';
-            } else {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                        await processGroqAudio(audioBlob, key);
-                    };
-
-                    mediaRecorder.start();
-                    document.getElementById('record-status').innerText = 'Gravando... Clique para parar';
-                    document.getElementById('mic-icon').className = 'fa-solid fa-stop text-3xl';
-                } catch (err) {
-                    alert('Erro ao acessar microfone: ' + err.message);
-                }
-            }
-        }
-
-        async function processGroqAudio(blob, apiKey) {
-            const formData = new FormData();
-            formData.append('file', blob, 'audio.mp3');
-            formData.append('model', 'whisper-large-v3');
-
-            try {
-                const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-                    headers: { 'Authorization': `Bearer ${apiKey}` },
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                if (data.text) {
-                    document.getElementById('voice-transcription').innerText = `"${data.text}"`;
-                    document.getElementById('voice-result-box').classList.remove('hidden');
-                    parseVoiceText(data.text);
-                } else {
-                    alert('Não foi possível transcrever o áudio.');
-                }
-            } catch (err) {
-                alert('Erro na API Groq: ' + err.message);
-            } finally {
-                document.getElementById('record-status').innerText = 'Clique no microfone para falar';
-                document.getElementById('mic-icon').className = 'fa-solid fa-microphone text-3xl';
-            }
-        }
-
-        function parseVoiceText(text) {
-            const placaMatch = text.match(/[A-Za-z]{3}\s?[0-9][A-Za-z0-9][0-9]{2}/i);
-            
-            extractedVoiceData = {
-                placa: placaMatch ? placaMatch[0].replace(/\s/g, '').toUpperCase() : '',
-                modelo: text,
-                cliente: '',
-                servico: text.toLowerCase().includes('completa') ? 'Lavagem Completa' : 'Lavagem Simples'
-            };
-        }
-
-        function applyVoiceDataToForm() {
-            if (extractedVoiceData) {
-                switchTab('novo');
-                if (extractedVoiceData.placa) document.getElementById('ent-placa').value = extractedVoiceData.placa;
-                document.getElementById('ent-modelo').value = extractedVoiceData.modelo;
-                document.getElementById('ent-servico').value = extractedVoiceData.servico;
-                autoFillValor();
-            }
-        }
-    </script>
+    <!-- Módulos JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
