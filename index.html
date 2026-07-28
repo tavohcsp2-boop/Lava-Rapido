@@ -3,646 +3,418 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lava-Rápido & Estética Automotiva - Gestão Inteligente</title>
+  <title>Sistema Lava-Rápido & Estética Automotiva</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
-  </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
 
-  <div id="screen-login" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md text-center">
-      <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg">
-        <i class="fa-solid fa-car-wash"></i>
+  <header class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex justify-between items-center gap-2">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-car-wash text-cyan-400 text-2xl"></i>
+        <h1 class="text-xl font-bold tracking-wide">AutoWash <span class="text-xs bg-cyan-500 text-slate-900 px-2 py-0.5 rounded font-semibold">Pro</span></h1>
       </div>
-      <h2 class="text-2xl font-bold text-slate-800 mb-1">Acesso ao Pátio</h2>
-      <p class="text-slate-500 text-sm mb-6">Digite a senha para acessar a operação</p>
       
-      <form id="form-login" onsubmit="handleLogin(event)">
-        <input type="password" id="input-password" placeholder="Digite a senha (ex: 1234)" 
-          class="w-full px-4 py-3 border border-slate-300 rounded-lg mb-4 text-center text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition">
+      <div class="flex items-center space-x-3 text-xs">
+        <span id="badge-status" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          Off-line / Local
+        </span>
+        <button onclick="toggleConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-lg transition border border-slate-700" title="Configurações">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="screen-login" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center border border-slate-200">
+      <div class="w-16 h-16 bg-cyan-100 text-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2 class="text-xl font-bold text-slate-800 mb-1">Acesso ao Pátio</h2>
+      <p class="text-xs text-slate-500 mb-6">Digite a senha para acessar a operação</p>
+      
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <input type="password" id="login-password" placeholder="Digite a senha (ex: 1234)" class="w-full text-center text-lg tracking-widest px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition bg-slate-50">
+        </div>
+        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-cyan-600/30">
           Entrar no Sistema
         </button>
       </form>
-
-      <button onclick="toggleRedefinirSenhaModal()" class="text-xs text-blue-600 hover:underline mt-4 inline-block">
-        Esqueceu ou quer redefinir a senha?
-      </button>
     </div>
   </div>
 
-  <div id="modal-redefinir-senha" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center">
-      <h3 class="text-lg font-bold text-slate-800 mb-2">Redefinir Senha de Acesso</h3>
-      <p class="text-xs text-slate-500 mb-4">Informe a senha atual e defina a nova senha para o aplicativo.</p>
-      <form onsubmit="handleRedefinirSenha(event)" class="space-y-3">
-        <input type="password" id="input-senha-atual" placeholder="Senha Atual" required
-          class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-        <input type="password" id="input-nova-senha" placeholder="Nova Senha" required
-          class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-        <div class="flex space-x-2 pt-2">
-          <button type="button" onclick="toggleRedefinirSenhaModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2.5 rounded-lg">
-            Cancelar
-          </button>
-          <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-lg">
-            Salvar
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <main class="max-w-6xl mx-auto p-4 space-y-6">
 
-  <div id="app-content" class="hidden max-w-4xl mx-auto p-4">
-    
-    <header class="bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xl font-bold">
-          <i class="fa-solid fa-car"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold text-slate-800" id="header-title">Lava-Rápido AutoBrilho</h1>
-          <div class="flex items-center space-x-2">
-            <p class="text-xs text-slate-500">Gestão de Pátio & CRM Inteligente</p>
-            <span id="supabase-status" class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
-              <i class="fa-solid fa-cloud-slash mr-1"></i> Off-line / Local
-            </span>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center space-x-2">
-        <button onclick="toggleRedefinirSenhaModal()" class="text-slate-500 hover:text-blue-600 p-2 text-xs" title="Alterar Senha">
-          <i class="fa-solid fa-key"></i>
-        </button>
-        <button onclick="handleLogout()" class="text-slate-400 hover:text-red-500 p-2 text-sm" title="Sair">
-          <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
-        </button>
-      </div>
-    </header>
-
-    <details class="bg-white rounded-xl shadow-sm p-4 mb-6 text-xs text-slate-600">
-      <summary class="font-bold text-blue-600 cursor-pointer flex items-center justify-between">
-        <span><i class="fa-solid fa-database mr-2"></i> Configurações do Banco de Dados Supabase</span>
-        <span class="text-slate-400 font-normal">Clique para expandir</span>
-      </summary>
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <label class="block font-semibold mb-1">SUPABASE_URL</label>
-          <input type="text" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" class="w-full p-2 border rounded font-mono">
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">SUPABASE_KEY (anon key)</label>
-          <input type="text" id="cfg-supabase-key" placeholder="eyJhbGciOi..." class="w-full p-2 border rounded font-mono">
-        </div>
-      </div>
-      <button onclick="saveSupabaseCredentials()" class="mt-3 bg-slate-800 hover:bg-slate-900 text-white font-bold py-1.5 px-4 rounded text-xs">
-        <i class="fa-solid fa-floppy-disk mr-1"></i> Salvar & Conectar Supabase
+    <nav class="flex rounded-xl bg-white p-1.5 shadow-sm border border-slate-200 overflow-x-auto gap-1">
+      <button onclick="switchTab('patio')" id="tab-patio" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 bg-cyan-600 text-white shadow-sm transition">
+        <i class="fa-solid fa-square-parking"></i> Pátio & Check-in
       </button>
-    <<!-- CONFIGURAÇÕES RÁPIDAS (SUPABASE E GROQ) -->
-    <details class="bg-white rounded-xl shadow-sm p-4 mb-6 text-xs text-slate-600">
-      <summary class="font-bold text-blue-600 cursor-pointer flex items-center justify-between">
-        <span><i class="fa-solid fa-gear mr-2"></i> Configurações do Banco de Dados & IA Groq</span>
-        <span class="text-slate-400 font-normal">Clique para expandir</span>
-      </summary>
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div>
-          <label class="block font-semibold mb-1">SUPABASE_URL</label>
-          <input type="text" id="cfg-supabase-url" placeholder="https://xyzcompany.supabase.co" class="w-full p-2 border rounded font-mono">
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">SUPABASE_KEY (anon key)</label>
-          <input type="text" id="cfg-supabase-key" placeholder="eyJhbGciOi..." class="w-full p-2 border rounded font-mono">
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">GROQ_API_KEY (IA de Voz)</label>
-          <input type="password" id="cfg-groq-key" placeholder="gsk_..." class="w-full p-2 border rounded font-mono">
-        </div>
-      </div>
-      <button onclick="saveApiCredentials()" class="mt-3 bg-slate-800 hover:bg-slate-900 text-white font-bold py-1.5 px-4 rounded text-xs">
-        <i class="fa-solid fa-floppy-disk mr-1"></i> Salvar Chaves de Acesso
+      <button onclick="switchTab('voz')" id="tab-voz" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-microphone"></i> Voz (IA Groq)
       </button>
-    </details>
+      <button onclick="switchTab('crm')" id="tab-crm" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-users"></i> Clientes
+      </button>
+      <button onclick="switchTab('financeiro')" id="tab-financeiro" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-chart-line"></i> Financeiro
+      </button>
+    </nav>
 
-    <div id="tab-patio" class="space-y-6">
-      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-600">
-        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-          <i class="fa-solid fa-bolt text-yellow-500 mr-2"></i> Novo Check-in de Veículo
-        </h3>
-        <form id="form-checkin" onsubmit="handleNewCheckin(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <section id="sec-patio" class="tab-content space-y-6">
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-cyan-600"></i> Novo Check-in de Veículo
+        </h2>
+
+        <form id="form-checkin" onsubmit="handleCheckin(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Placa do Veículo *</label>
-            <input type="text" id="input-placa" placeholder="ABC1D23" required uppercase
-              class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 uppercase font-mono font-bold">
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Placa do Veículo</label>
+            <input type="text" id="input-placa" required placeholder="ABC1D23" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none uppercase font-mono font-bold text-slate-800 bg-slate-50">
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Modelo / Cor *</label>
-            <input type="text" id="input-modelo" placeholder="Ex: Civic Cinza" required
-              class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Modelo / Veículo</label>
+            <input type="text" id="input-modelo" required placeholder="Ex: Civic Cinza" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-slate-800 bg-slate-50">
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp do Cliente (Apenas Números)</label>
-            <input type="tel" id="input-whatsapp" placeholder="51999999999"
-              class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Serviço Solicitado</label>
-            <select id="select-servico" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500" onchange="updateValorServico()">
-              <option value="Lavagem Simples" data-valor="40">Lavagem Simples - R$ 40,00</option>
-              <option value="Lavagem Completa + Cera" data-valor="70">Lavagem Completa + Cera - R$ 70,00</option>
-              <option value="Higienização Interna" data-valor="150">Higienização Interna - R$ 150,00</option>
-              <option value="Polimento e Vitrificação" data-valor="350">Polimento e Vitrificação - R$ 350,00</option>
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Serviço</label>
+            <select id="select-servico" onchange="updateValorServico()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-slate-800 bg-slate-50 font-medium">
+              <option value="Lavagem Simples">Lavagem Simples - R$ 40</option>
+              <option value="Lavagem Completa">Lavagem Completa - R$ 60</option>
+              <option value="Higienização">Higienização - R$ 120</option>
+              <option value="Polimento">Polimento - R$ 200</option>
             </select>
           </div>
+
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$)</label>
-            <input type="number" id="input-valor" value="40" step="0.01" required
-              class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 font-bold text-green-700">
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Valor (R$)</label>
+            <input type="number" id="input-valor" required value="40" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none font-bold text-slate-800 bg-slate-50">
           </div>
+
+          <div class="md:col-span-2 lg:col-span-3">
+            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">WhatsApp / Telefone do Cliente</label>
+            <input type="tel" id="input-whatsapp" placeholder="(11) 99999-9999" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none text-slate-800 bg-slate-50">
+          </div>
+
           <div class="flex items-end">
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow transition">
-              <i class="fa-solid fa-plus mr-1"></i> Dar Entrada no Pátio
+            <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2.5 px-4 rounded-lg transition shadow-md flex items-center justify-center gap-2">
+              <i class="fa-solid fa-car"></i> Dar Entrada
             </button>
           </div>
         </form>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm p-5">
-        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
-          <span><i class="fa-solid fa-cars mr-2 text-blue-600"></i> Veículos em Atendimento</span>
-          <span id="badge-total-patio" class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">0 no pátio</span>
-        </h3>
-
-        <div id="lista-patio" class="space-y-3">
-          <p class="text-center text-slate-400 py-6">Nenhum veículo no pátio no momento.</p>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-clientes" class="hidden space-y-6">
-      <div class="bg-white rounded-xl shadow-sm p-5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <h3 class="text-lg font-bold text-slate-800 flex items-center">
-            <i class="fa-solid fa-users text-blue-600 mr-2"></i> Histórico de Clientes & Garagem
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-slate-700 text-base flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-slate-500"></i> Veículos no Pátio 
+            <span id="patio-count" class="bg-cyan-100 text-cyan-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
           </h3>
-          
-          <div class="relative w-full md:w-72">
-            <input type="text" id="input-search-cliente" oninput="renderCRM()" placeholder="Pesquisar por placa, modelo ou telefone..." 
-              class="w-full pl-9 pr-4 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-blue-500">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-          </div>
         </div>
 
-        <div id="lista-clientes-crm" class="space-y-4">
-          <p class="text-center text-slate-400 py-6">Nenhum histórico registrado.</p>
-        </div>
+        <div id="grid-patio" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
-    </div>
+    </section>
 
-    <div id="tab-voz" class="hidden space-y-6">
-      <div class="bg-white rounded-xl shadow-sm p-6 text-center">
-        <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+    <section id="sec-voz" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 text-center space-y-4 max-w-xl mx-auto">
+        <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto text-2xl">
           <i class="fa-solid fa-microphone-lines"></i>
         </div>
-        <h3 class="text-xl font-bold text-slate-800 mb-2">Comando de Voz para Pátio</h3>
-        <p class="text-sm text-slate-500 max-w-md mx-auto mb-6">
-          Pressione o botão, fale as instruções do atendimento e a IA extrairá automaticamente os dados para entrada no pátio.
-        </p>
-
-        <button id="btn-record" onclick="toggleRecording()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-full shadow-lg transition flex items-center mx-auto text-lg space-x-2">
-          <i class="fa-solid fa-microphone"></i>
-          <span id="lbl-record">Gravar Instrução</span>
-        </button>
-
-        <div id="voice-status" class="mt-4 text-sm font-semibold text-slate-600 hidden">
-          <i class="fa-solid fa-spinner fa-spin text-blue-600 mr-2"></i> Processando áudio via IA Groq...
+        <h2 class="text-xl font-bold text-slate-800">Check-in por Comando de Voz</h2>
+        <p class="text-xs text-slate-500">Pressione o botão, fale os dados do carro e a IA preencherá o cadastro automaticamente.</p>
+        
+        <div class="py-4">
+          <button id="btn-record" onclick="toggleRecording()" class="w-24 h-24 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-3xl font-bold shadow-xl shadow-purple-600/30 transition flex items-center justify-center mx-auto">
+            <i id="icon-record" class="fa-solid fa-microphone"></i>
+          </button>
+          <p id="record-status" class="text-xs font-semibold text-slate-500 mt-3">Clique para começar a falar</p>
         </div>
 
-        <div id="voice-result" class="mt-6 p-4 bg-slate-50 rounded-lg text-left hidden border">
-          <h4 class="font-bold text-slate-700 text-xs uppercase mb-1">Transcrição detectada:</h4>
-          <p id="text-transcription" class="text-sm text-slate-800 italic mb-3">...</p>
-          <div id="voice-parsed" class="bg-white p-3 rounded border text-xs text-slate-700 space-y-1 hidden">
-            <p><strong>Placa:</strong> <span id="parsed-placa">-</span></p>
-            <p><strong>Modelo:</strong> <span id="parsed-modelo">-</span></p>
-            <p><strong>Serviço:</strong> <span id="parsed-servico">-</span></p>
-            <p><strong>WhatsApp:</strong> <span id="parsed-whatsapp">-</span></p>
-          </div>
+        <div id="voice-transcript" class="text-left bg-slate-50 p-4 rounded-xl border border-slate-200 hidden text-xs space-y-2">
+          <p class="font-bold text-slate-700">Transcrição detectada:</p>
+          <p id="transcript-text" class="italic text-slate-600">...</p>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div id="tab-caixa" class="hidden space-y-6">
+    <section id="sec-crm" class="tab-content hidden space-y-4">
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-slate-800">Base de Clientes & Pós-Venda</h2>
+          <input type="text" id="search-cliente" oninput="renderCRM()" placeholder="Buscar cliente ou placa..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs w-48 focus:ring-2 focus:ring-cyan-500 outline-none">
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500 border-b border-slate-200">
+              <tr>
+                <th class="p-3">Placa / Veículo</th>
+                <th class="p-3">WhatsApp</th>
+                <th class="p-3">Último Serviço</th>
+                <th class="p-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-crm" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-financeiro" class="tab-content hidden space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
-          <p class="text-xs text-slate-500 font-semibold uppercase">Faturamento Total</p>
-          <p class="text-2xl font-bold text-green-600 mt-1" id="stat-faturamento">R$ 0,00</p>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase">Faturamento Total</p>
+          <p id="stat-total" class="text-2xl font-black text-emerald-600 mt-1">R$ 0,00</p>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
-          <p class="text-xs text-slate-500 font-semibold uppercase">Lavagens Concluídas</p>
-          <p class="text-2xl font-bold text-blue-600 mt-1" id="stat-concluidos">0</p>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase">Atendimentos Concluídos</p>
+          <p id="stat-concluidos" class="text-2xl font-black text-slate-800 mt-1">0</p>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500">
-          <p class="text-xs text-slate-500 font-semibold uppercase">Ticket Médio</p>
-          <p class="text-2xl font-bold text-yellow-600 mt-1" id="stat-ticket">R$ 0,00</p>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase">Ticket Médio</p>
+          <p id="stat-ticket" class="text-2xl font-black text-cyan-600 mt-1">R$ 0,00</p>
         </div>
       </div>
-    </div>
+    </section>
 
+  </main>
+
+  <div id="modal-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-slate-200 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800 text-lg">Configurações de APIs</h3>
+        <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Supabase URL</label>
+          <input type="text" id="cfg-supabase-url" placeholder="https://xyz.supabase.co" class="w-full px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-cyan-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Supabase Key (anon public)</label>
+          <input type="password" id="cfg-supabase-key" placeholder="eyJ..." class="w-full px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-cyan-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Groq API Key (IA de Voz)</label>
+          <input type="password" id="cfg-groq-key" placeholder="gsk_..." class="w-full px-3 py-2 border rounded-lg text-xs outline-none focus:ring-2 focus:ring-cyan-500">
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end gap-2">
+        <button onclick="toggleConfigModal()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg">Cancelar</button>
+        <button onclick="saveApiCredentials()" class="px-4 py-2 text-xs font-bold bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 shadow-md">Salvar Configurações</button>
+      </div>
+    </div>
   </div>
 
   <script>
-  let currentPassword = localStorage.getItem('lava_password') || "1234";
-  let dbAtendimentos = [];
-  let mediaRecorder = null;
-  let audioChunks = [];
+    let currentPassword = localStorage.getItem('lava_password') || "1234";
+    let dbAtendimentos = JSON.parse(localStorage.getItem('local_atendimentos')) || [];
+    let mediaRecorder = null;
+    let audioChunks = [];
 
-  let SUPABASE_URL = localStorage.getItem('supabase_url') || "";
-  let SUPABASE_KEY = localStorage.getItem('supabase_key') || "";
-  let GROQ_API_KEY = localStorage.getItem('groq_api_key') || "";
-
-  function saveApiCredentials() {
-    const urlInput = document.getElementById('cfg-supabase-url') || document.getElementById('cfg-url');
-    const keyInput = document.getElementById('cfg-supabase-key') || document.getElementById('cfg-key');
-    const groqInput = document.getElementById('cfg-groq-key') || document.getElementById('cfg-groq');
-
-    const url = urlInput ? urlInput.value.trim().replace(/\/+$/, "") : "";
-    const key = keyInput ? keyInput.value.trim() : "";
-    const groq = groqInput ? groqInput.value.trim() : "";
-
-    if (url && key) {
-      localStorage.setItem('supabase_url', url);
-      localStorage.setItem('supabase_key', key);
-      SUPABASE_URL = url;
-      SUPABASE_KEY = key;
-    }
-
-    if (groq) {
-      localStorage.setItem('groq_api_key', groq);
-      GROQ_API_KEY = groq;
-    }
-
-    alert('Configurações salvas com sucesso!');
-    location.reload();
-  }
-  function saveApiCredentials() {
-    const url = document.getElementById('cfg-supabase-url').value.trim().replace(/\/+$/, "");
-    const key = document.getElementById('cfg-supabase-key').value.trim();
-    const groq = document.getElementById('cfg-groq-key').value.trim();
-
-    if (url && key) {
-      localStorage.setItem('supabase_url', url);
-      localStorage.setItem('supabase_key', key);
-      SUPABASE_URL = url;
-      SUPABASE_KEY = key;
-    }
-
-    if (groq) {
-      localStorage.setItem('groq_api_key', groq);
-      GROQ_API_KEY = groq;
-    }
-
-    alert('Configurações salvas com sucesso!');
-    location.reload();
-  
-    let GROQ_API_KEY = localStorage.getItem('groq_api_key') || "";
     let SUPABASE_URL = localStorage.getItem('supabase_url') || "";
     let SUPABASE_KEY = localStorage.getItem('supabase_key') || "";
-    function saveApiCredentials() {
-  // .replace(/\/+$/, "") remove barras do final da URL automaticamente
-  const url = document.getElementById('cfg-supabase-url').value.trim().replace(/\/+$/, "");
-  const key = document.getElementById('cfg-supabase-key').value.trim();
-  const groq = document.getElementById('cfg-groq-key').value.trim();
+    let GROQ_API_KEY = localStorage.getItem('groq_api_key') || "";
+    let supabaseClient = null;
 
-  if (url && key) {
-    localStorage.setItem('supabase_url', url);
-    localStorage.setItem('supabase_key', key);
-    SUPABASE_URL = url;
-    SUPABASE_KEY = key;
-  }
-
-  if (groq) {
-    localStorage.setItem('groq_api_key', groq);
-    GROQ_API_KEY = groq;
-  }
-
-  alert('Configurações salvas com sucesso!');
-  location.reload(); // Recarrega a página para iniciar o Supabase limpo com as novas chaves
-}
-      }
-
-      alert('Configurações salvas com sucesso!');
-    }
-
-    async function fetchSupabaseData() {
-      if (!supabaseClient) return;
-      const { data, error } = await supabaseClient.from('atendimentos').select('*').order('created_at', { ascending: false });
-      if (!error && data) {
-        dbAtendimentos = data.map(item => ({
-          id: item.id.toString(),
-          placa: item.placa,
-          modelo: item.modelo,
-          whatsapp: item.whatsapp,
-          servico: item.servico,
-          valor: parseFloat(item.valor),
-          status: item.status,
-          data: item.data || item.created_at
-        }));
-        saveLocal(false);
-        renderPatio();
-        renderCRM();
-      }
-    }
-
-    function saveSupabaseCredentials() {
-      const url = document.getElementById('cfg-supabase-url').value.trim();
-      const key = document.getElementById('cfg-supabase-key').value.trim();
-      if (url && key) {
-        localStorage.setItem('supabase_url', url);
-        localStorage.setItem('supabase_key', key);
-        SUPABASE_URL = url;
-        SUPABASE_KEY = key;
-        initSupabase();
-        alert('Credenciais salvas com sucesso!');
-      }
-    }
-
-    function initApp() {
-      document.getElementById('cfg-supabase-url').value = SUPABASE_URL;
-      document.getElementById('cfg-supabase-key').value = SUPABASE_KEY;
-
-      const savedData = localStorage.getItem('lava_atendimentos');
-      if (savedData) {
-        dbAtendimentos = JSON.parse(savedData);
-      } else {
-        dbAtendimentos = [
-          { id: '1', placa: 'ABC1234', modelo: 'Civic Cinza', whatsapp: '5511999998888', servico: 'Lavagem Completa + Cera', valor: 70, status: 'Em Lavagem', data: new Date().toISOString() },
-          { id: '2', placa: 'XYZ9876', modelo: 'Jeep Compass Preto', whatsapp: '5511977776666', servico: 'Polimento e Vitrificação', valor: 350, status: 'Pronto', data: new Date().toISOString() }
-        ];
-        saveLocal();
-      }
-
+    window.addEventListener('DOMContentLoaded', () => {
       initSupabase();
       renderPatio();
       renderCRM();
       updateStats();
+      fillConfigInputs();
+    });
+
+    function initSupabase() {
+      if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
+        try {
+          const cleanUrl = SUPABASE_URL.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+          supabaseClient = window.supabase.createClient(cleanUrl, SUPABASE_KEY.trim());
+          
+          const badge = document.getElementById('badge-status');
+          if (badge) {
+            badge.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium";
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Supabase Conectado`;
+          }
+          syncSupabaseData();
+        } catch (e) {
+          console.error("Erro ao conectar no Supabase:", e);
+        }
+      }
     }
 
-    function saveLocal(syncToCloud = true) {
-      localStorage.setItem('lava_atendimentos', JSON.stringify(dbAtendimentos));
-      updateStats();
-    }
-
-    // LOGIN E REDEFINIÇÃO DE SENHA
     function handleLogin(e) {
       e.preventDefault();
-      if (document.getElementById('input-password').value === currentPassword) {
+      const inputPass = document.getElementById('login-password').value;
+      if (inputPass === currentPassword) {
         document.getElementById('screen-login').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
-        initApp();
       } else {
         alert('Senha incorreta!');
       }
     }
 
-    function toggleRedefinirSenhaModal() {
-      const modal = document.getElementById('modal-redefinir-senha');
-      modal.classList.toggle('hidden');
-    }
-
-    function handleRedefinirSenha(e) {
-      e.preventDefault();
-      const atual = document.getElementById('input-senha-atual').value;
-      const nova = document.getElementById('input-nova-senha').value;
-
-      if (atual !== currentPassword) {
-        alert('Senha atual incorreta!');
-        return;
-      }
-
-      if (nova.length < 3) {
-        alert('A nova senha deve ter pelo menos 3 caracteres.');
-        return;
-      }
-
-      currentPassword = nova;
-      localStorage.setItem('lava_password', nova);
-      alert('Senha redefinida com sucesso!');
-      toggleRedefinirSenhaModal();
-      document.getElementById('input-senha-atual').value = '';
-      document.getElementById('input-nova-senha').value = '';
-    }
-
-    function handleLogout() {
-      document.getElementById('screen-login').classList.remove('hidden');
-      document.getElementById('app-content').classList.add('hidden');
-    }
-
-    function switchTab(tabName) {
-      ['patio', 'clientes', 'voz', 'caixa'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tab-btn-${t}`).classList.remove('tab-active', 'text-blue-600');
-        document.getElementById(`tab-btn-${t}`).classList.add('text-slate-500');
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-cyan-600', 'text-white', 'shadow-sm');
+        el.classList.add('text-slate-600');
       });
 
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-      activeBtn.classList.add('tab-active', 'text-blue-600');
-      activeBtn.classList.remove('text-slate-500');
+      document.getElementById(`sec-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tab}`);
+      activeBtn.classList.add('bg-cyan-600', 'text-white', 'shadow-sm');
+      activeBtn.classList.remove('text-slate-600');
     }
 
     function updateValorServico() {
       const select = document.getElementById('select-servico');
-      const val = select.options[select.selectedIndex].getAttribute('data-valor');
-      document.getElementById('input-valor').value = val;
+      const inputValor = document.getElementById('input-valor');
+      if (!select || !inputValor) return;
+
+      const servico = select.value;
+      if (servico.includes('Simples')) inputValor.value = 40;
+      else if (servico.includes('Completa')) inputValor.value = 60;
+      else if (servico.includes('Higienização')) inputValor.value = 120;
+      else if (servico.includes('Polimento')) inputValor.value = 200;
     }
 
-    async function handleNewCheckin(e) {
+    async function handleCheckin(e) {
       e.preventDefault();
-      const placa = document.getElementById('input-placa').value.toUpperCase();
-      const modelo = document.getElementById('input-modelo').value;
-      let whatsapp = document.getElementById('input-whatsapp').value.replace(/\D/g, '');
-      
-      if(whatsapp.length === 11 || whatsapp.length === 10) {
-        whatsapp = '55' + whatsapp;
-      }
-
-      const servico = document.getElementById('select-servico').value;
-      const valor = parseFloat(document.getElementById('input-valor').value);
-
-      const novo = {
+      const item = {
         id: Date.now().toString(),
-        placa,
-        modelo,
-        whatsapp,
-        servico,
-        valor,
-        status: 'Em Fila',
-        data: new Date().toISOString()
+        placa: document.getElementById('input-placa').value.toUpperCase().trim(),
+        modelo: document.getElementById('input-modelo').value.trim(),
+        servico: document.getElementById('select-servico').value,
+        valor: parseFloat(document.getElementById('input-valor').value) || 0,
+        whatsapp: document.getElementById('input-whatsapp').value.trim(),
+        status: 'Em Lavagem',
+        dataEntrada: new Date().toISOString()
       };
 
-      dbAtendimentos.unshift(novo);
-      saveLocal();
-
-      // Enviar ao Supabase se conectado
-      if (supabaseClient) {
-        await supabaseClient.from('atendimentos').insert([novo]);
-      }
-
+      dbAtendimentos.unshift(item);
+      saveLocalData();
       renderPatio();
       renderCRM();
+      updateStats();
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('atendimentos').insert([item]);
+        } catch (err) {
+          console.log("Erro no Supabase:", err);
+        }
+      }
 
       document.getElementById('form-checkin').reset();
       updateValorServico();
     }
 
-    async function updateStatus(id, newStatus) {
+    async function changeStatus(id, newStatus) {
       const idx = dbAtendimentos.findIndex(a => a.id === id);
       if (idx !== -1) {
         dbAtendimentos[idx].status = newStatus;
-        saveLocal();
+        saveLocalData();
+        renderPatio();
+        updateStats();
 
         if (supabaseClient) {
-          await supabaseClient.from('atendimentos').update({ status: newStatus }).eq('id', id);
+          try {
+            await supabaseClient.from('atendimentos').update({ status: newStatus }).eq('id', id);
+          } catch(e) {}
         }
-
-        renderPatio();
-        renderCRM();
       }
-    }
-
-    function sendWhatsApp(id) {
-      const item = dbAtendimentos.find(a => a.id === id);
-      if (!item || !item.whatsapp) {
-        alert('Telefone do WhatsApp não informado!');
-        return;
-      }
-
-      let text = `Olá! Seu veículo *${item.modelo}* (Placa: *${item.placa}*) está pronto para retirada no *Lava-Rápido AutoBrilho*! 🚗✨\n\nServiço: ${item.servico}\nValor: R$ ${item.valor.toFixed(2)}`;
-      
-      const url = `https://wa.me/${item.whatsapp}?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
     }
 
     function renderPatio() {
-      const container = document.getElementById('lista-patio');
-      const emAndamento = dbAtendimentos.filter(a => a.status !== 'Entregue');
-      
-      document.getElementById('badge-total-patio').innerText = `${emAndamento.length} no pátio`;
+      const grid = document.getElementById('grid-patio');
+      const emPatios = dbAtendimentos.filter(a => a.status !== 'Entregue');
+      document.getElementById('patio-count').innerText = emPatios.length;
 
-      if (emAndamento.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-400 py-6">Nenhum veículo no pátio no momento.</p>`;
+      if (emPatios.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-medium">Nenhum veículo no pátio no momento.</div>`;
         return;
       }
 
-      container.innerHTML = emAndamento.map(item => `
-        <div class="bg-slate-50 border rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="bg-slate-800 text-white font-mono font-bold text-xs px-2 py-0.5 rounded">${item.placa}</span>
-              <h4 class="font-bold text-slate-800">${item.modelo}</h4>
+      grid.innerHTML = emPatios.map(item => `
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="font-mono font-bold text-lg text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">${item.placa}</span>
+              <h4 class="font-bold text-slate-700 text-sm mt-1">${item.modelo}</h4>
             </div>
-            <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-wrench mr-1"></i> ${item.servico} — <strong class="text-green-700">R$ ${item.valor.toFixed(2)}</strong></p>
-            ${item.whatsapp ? `<p class="text-xs text-blue-600 mt-0.5"><i class="fa-brands fa-whatsapp mr-1"></i> ${item.whatsapp}</p>` : ''}
+            <span class="text-xs font-bold px-2 py-1 rounded-full ${
+              item.status === 'Em Lavagem' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+            }">${item.status}</span>
           </div>
 
-          <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
-            ${item.whatsapp ? `
-              <button onclick="sendWhatsApp('${item.id}')" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 px-3 rounded flex items-center gap-1 shadow">
-                <i class="fa-brands fa-whatsapp text-sm"></i> Avisar Cliente
-              </button>
-            ` : ''}
+          <div class="text-xs text-slate-500 flex justify-between border-t border-slate-100 pt-2">
+            <span>${item.servico}</span>
+            <span class="font-bold text-slate-700">R$ ${item.valor.toFixed(2)}</span>
+          </div>
 
-            <select onchange="updateStatus('${item.id}', this.value)" class="text-xs p-2 border rounded font-semibold bg-white">
-              <option value="Em Fila" ${item.status === 'Em Fila' ? 'selected' : ''}>⏳ Em Fila</option>
-              <option value="Em Lavagem" ${item.status === 'Em Lavagem' ? 'selected' : ''}>🧼 Em Lavagem</option>
-              <option value="Pronto" ${item.status === 'Pronto' ? 'selected' : ''}>✨ Pronto</option>
-              <option value="Entregue" ${item.status === 'Entregue' ? 'selected' : ''}>🚗 Entregue</option>
-            </select>
+          <div class="flex gap-1.5 pt-1">
+            ${item.status === 'Em Lavagem' ? `
+              <button onclick="changeStatus('${item.id}', 'Pronto')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 rounded transition">
+                Marcar Pronto
+              </button>
+            ` : `
+              <button onclick="changeStatus('${item.id}', 'Entregue')" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-1.5 rounded transition">
+                Entregar
+              </button>
+            `}
+            ${item.whatsapp ? `
+              <a href="https://wa.me/55${item.whatsapp.replace(/\D/g,'')}?text=Olá!%20Seu%20veículo%20${item.placa}%20está%20${item.status}!" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded text-xs flex items-center justify-center">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
+            ` : ''}
           </div>
         </div>
       `).join('');
     }
 
-    // PESQUISA E EXIBIÇÃO DE CLIENTES (CRM)
     function renderCRM() {
-      const container = document.getElementById('lista-clientes-crm');
-      const searchInput = document.getElementById('input-search-cliente');
-      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const tbody = document.getElementById('tbody-crm');
+      const search = (document.getElementById('search-cliente')?.value || "").toLowerCase();
+      
+      const filtered = dbAtendimentos.filter(a => 
+        a.placa.toLowerCase().includes(search) || a.modelo.toLowerCase().includes(search)
+      );
 
-      const garagens = {};
-
-      dbAtendimentos.forEach(item => {
-        if (!garagens[item.placa]) {
-          garagens[item.placa] = { modelo: item.modelo, whatsapp: item.whatsapp, historico: [] };
-        }
-        garagens[item.placa].historico.push(item);
-      });
-
-      let placas = Object.keys(garagens);
-
-      // Aplicar filtro de busca
-      if (query) {
-        placas = placas.filter(placa => {
-          const info = garagens[placa];
-          const matchesPlaca = placa.toLowerCase().includes(query);
-          const matchesModelo = info.modelo.toLowerCase().includes(query);
-          const matchesPhone = info.whatsapp ? info.whatsapp.includes(query) : false;
-          return matchesPlaca || matchesModelo || matchesPhone;
-        });
-      }
-
-      if (placas.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-400 py-6">${query ? 'Nenhum cliente encontrado na pesquisa.' : 'Nenhum histórico registrado.'}</p>`;
-        return;
-      }
-
-      container.innerHTML = placas.map(placa => {
-        const info = garagens[placa];
-        const totalGasto = info.historico.reduce((acc, h) => acc + h.valor, 0);
-
-        return `
-          <div class="border rounded-lg p-4 bg-white shadow-sm">
-            <div class="flex justify-between items-start border-b pb-2 mb-2">
-              <div>
-                <span class="bg-blue-600 text-white font-mono font-bold text-xs px-2 py-0.5 rounded">${placa}</span>
-                <span class="font-bold text-slate-800 ml-2">${info.modelo}</span>
-              </div>
-              <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">
-                Total Acumulado: R$ ${totalGasto.toFixed(2)}
-              </span>
-            </div>
-            ${info.whatsapp ? `<p class="text-xs text-blue-600 mb-2"><i class="fa-brands fa-whatsapp mr-1"></i> ${info.whatsapp}</p>` : ''}
-            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ${info.historico.length} visitas registradas</p>
-            <div class="text-xs space-y-1 bg-slate-50 p-2 rounded">
-              ${info.historico.map(h => `
-                <div class="flex justify-between text-slate-600">
-                  <span>${new Date(h.data).toLocaleDateString('pt-BR')} - ${h.servico}</span>
-                  <span class="font-semibold">R$ ${h.valor.toFixed(2)} (${h.status})</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
+      tbody.innerHTML = filtered.map(a => `
+        <tr>
+          <td class="p-3 font-medium text-slate-800">${a.placa} <span class="text-xs text-slate-400">(${a.modelo})</span></td>
+          <td class="p-3">${a.whatsapp || '-'}</td>
+          <td class="p-3">${a.servico}</td>
+          <td class="p-3">
+            ${a.whatsapp ? `
+              <a href="https://wa.me/55${a.whatsapp.replace(/\D/g,'')}" target="_blank" class="text-emerald-600 font-bold hover:underline">WhatsApp</a>
+            ` : '-'}
+          </td>
+        </tr>
+      `).join('');
     }
 
     function updateStats() {
-      const concluidos = dbAtendimentos.filter(a => a.status === 'Entregue' || a.status === 'Pronto');
-      const totalFat = concluidos.reduce((acc, a) => acc + a.valor, 0);
-      const ticket = concluidos.length > 0 ? (totalFat / concluidos.length) : 0;
+      const concluidos = dbAtendimentos.filter(a => a.status === 'Entregue');
+      const total = concluidos.reduce((acc, a) => acc + (a.valor || 0), 0);
+      const ticket = concluidos.length > 0 ? total / concluidos.length : 0;
 
-      document.getElementById('stat-faturamento').innerText = `R$ ${totalFat.toFixed(2)}`;
+      document.getElementById('stat-total').innerText = `R$ ${total.toFixed(2)}`;
       document.getElementById('stat-concluidos').innerText = concluidos.length;
       document.getElementById('stat-ticket').innerText = `R$ ${ticket.toFixed(2)}`;
     }
 
-    // INTEGRAÇÃO DE VOZ (GROQ WHISPER)
     async function toggleRecording() {
       const btn = document.getElementById('btn-record');
-      const lbl = document.getElementById('lbl-record');
-      const status = document.getElementById('voice-status');
+      const status = document.getElementById('record-status');
 
       if (!mediaRecorder || mediaRecorder.state === 'inactive') {
         try {
@@ -654,79 +426,98 @@
           mediaRecorder.onstop = processVoiceAudio;
 
           mediaRecorder.start();
-          btn.classList.replace('bg-red-600', 'bg-slate-800');
-          lbl.innerText = 'Parar Gravação...';
+          btn.classList.replace('bg-purple-600', 'bg-red-600');
+          status.innerText = "Gravando... Fale agora e clique de novo para parar.";
         } catch (err) {
-          alert('Erro ao acessar microfone: ' + err.message);
+          alert('Acesso ao microfone negado ou não suportado.');
         }
       } else {
         mediaRecorder.stop();
-        btn.classList.replace('bg-slate-800', 'bg-red-600');
-        lbl.innerText = 'Gravar Instrução';
-        status.classList.remove('hidden');
+        btn.classList.replace('bg-red-600', 'bg-purple-600');
+        status.innerText = "Processando áudio com IA Groq...";
       }
     }
 
     async function processVoiceAudio() {
-      const status = document.getElementById('voice-status');
-      const resultBox = document.getElementById('voice-result');
-      const parsedBox = document.getElementById('voice-parsed');
-      const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+      if (!GROQ_API_KEY) {
+        alert('Por favor, configure a chave da API da Groq nas configurações!');
+        return;
+      }
 
+      const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
       const formData = new FormData();
       formData.append('file', audioBlob, 'audio.mp3');
       formData.append('model', 'whisper-large-v3');
 
       try {
-        const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` },
           body: formData
         });
 
-        const data = await response.json();
-        status.classList.add('hidden');
-
+        const data = await res.json();
         if (data.text) {
-          document.getElementById('text-transcription').innerText = `"${data.text}"`;
-          resultBox.classList.remove('hidden');
-
+          document.getElementById('voice-transcript').classList.remove('hidden');
+          document.getElementById('transcript-text').innerText = `"${data.text}"`;
           parseAndFillVoiceData(data.text);
-          parsedBox.classList.remove('hidden');
-        } else {
-          alert('Não foi possível transcrever o áudio.');
         }
       } catch (err) {
-        status.classList.add('hidden');
-        alert('Falha na comunicação com a IA Groq: ' + err.message);
+        alert('Falha ao processar áudio pela Groq.');
       }
     }
 
     function parseAndFillVoiceData(text) {
-      const upper = text.toUpperCase();
+      const placaMatch = text.match(/[A-Za-z]{3}\s?[0-9][A-Za-z0-9][0-9]{2}/i);
+      if (placaMatch) document.getElementById('input-placa').value = placaMatch[0].replace(/\s/g, '').toUpperCase();
 
-      const placaMatch = upper.match(/[A-Z]{3}[0-9][A-Z0-9][0-9]{2}/) || upper.match(/[A-Z]{3}[0-9]{4}/);
-      const placa = placaMatch ? placaMatch[0] : '';
-
-      const phoneDigits = text.replace(/\D/g, '');
-      const whatsapp = phoneDigits.length >= 8 ? phoneDigits : '';
-
-      let servico = 'Lavagem Simples';
-      if (upper.includes('COMPLETA') || upper.includes('CERA')) servico = 'Lavagem Completa + Cera';
-      if (upper.includes('HIGIENIZAÇÃO') || upper.includes('INTERNA')) servico = 'Higienização Interna';
-      if (upper.includes('POLIMENTO') || upper.includes('VITRIFICAÇÃO')) servico = 'Polimento e Vitrificação';
-
-      if (placa) document.getElementById('input-placa').value = placa;
-      if (whatsapp) document.getElementById('input-whatsapp').value = whatsapp;
-
-      const selectServico = document.getElementById('select-servico');
-      selectServico.value = servico;
+      if (text.toLowerCase().includes('completa')) document.getElementById('select-servico').value = 'Lavagem Completa';
+      else if (text.toLowerCase().includes('higienização')) document.getElementById('select-servico').value = 'Higienização';
+      else if (text.toLowerCase().includes('polimento')) document.getElementById('select-servico').value = 'Polimento';
+      
       updateValorServico();
+      switchTab('patio');
+    }
 
-      document.getElementById('parsed-placa').innerText = placa || 'Não identificada';
-      document.getElementById('parsed-modelo').innerText = 'Detectado via áudio';
-      document.getElementById('parsed-servico').innerText = servico;
-      document.getElementById('parsed-whatsapp').innerText = whatsapp || 'Não identificado';
+    function toggleConfigModal() {
+      document.getElementById('modal-config').classList.toggle('hidden');
+    }
+
+    function fillConfigInputs() {
+      document.getElementById('cfg-supabase-url').value = SUPABASE_URL;
+      document.getElementById('cfg-supabase-key').value = SUPABASE_KEY;
+      document.getElementById('cfg-groq-key').value = GROQ_API_KEY;
+    }
+
+    function saveApiCredentials() {
+      const url = document.getElementById('cfg-supabase-url').value.trim().replace(/\/+$/, "");
+      const key = document.getElementById('cfg-supabase-key').value.trim();
+      const groq = document.getElementById('cfg-groq-key').value.trim();
+
+      if (url) localStorage.setItem('supabase_url', url);
+      if (key) localStorage.setItem('supabase_key', key);
+      if (groq) localStorage.setItem('groq_api_key', groq);
+
+      alert('Configurações salvas com sucesso!');
+      location.reload();
+    }
+
+    function saveLocalData() {
+      localStorage.setItem('local_atendimentos', JSON.stringify(dbAtendimentos));
+    }
+
+    async function syncSupabaseData() {
+      if (!supabaseClient) return;
+      try {
+        const { data } = await supabaseClient.from('atendimentos').select('*').order('dataEntrada', { ascending: false });
+        if (data && data.length > 0) {
+          dbAtendimentos = data;
+          saveLocalData();
+          renderPatio();
+          renderCRM();
+          updateStats();
+        }
+      } catch (e) {}
     }
   </script>
 </body>
