@@ -1,59 +1,133 @@
 /* ==========================================================================
-   INICIALIZAÇÃO DO APLICATIVO E EVENTOS (BOOTSTRAP & PWA)
+   INTERFACE DO USUÁRIO (UI) E NAVEGAÇÃO
    ========================================================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inicializar Autenticação
-    Auth.init();
+const SENHA_ADMIN = "1234"; // 🔒 Sua senha para acessar Configurações e Relatórios
 
-    // 2. Evento do Formulário de Login
-    const formLogin = document.getElementById('form-login');
-    if (formLogin) {
-        formLogin.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            await Auth.login(email, password);
-        });
-    }
+const UI = {
+    // Exibe ou esconde o indicador de carregamento
+    showLoader(show) {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = show ? 'flex' : 'none';
+        }
+    },
 
-    // 3. Evento do Formulário de Nova Entrada (OS)
-    const formAtendimento = document.getElementById('form-novo-atendimento');
-    if (formAtendimento) {
-        formAtendimento.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            UI.showLoader(true);
+    // Exibe mensagens de aviso (Toast)
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        
+        const container = document.getElementById('toast-container') || document.body;
+        container.appendChild(toast);
 
-            const novoItem = {
-                placa_snapshot: document.getElementById('os-placa').value.toUpperCase(),
-                modelo_snapshot: document.getElementById('os-modelo').value,
-                cliente_nome_snapshot: document.getElementById('os-cliente').value,
-                telefone_snapshot: document.getElementById('os-telefone').value,
-                valor_total: parseFloat(document.getElementById('os-valor').value),
-                observacoes: document.getElementById('os-obs').value,
-                status: 'PATIO'
-            };
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    },
 
-            const res = await DB.createAtendimento(novoItem);
-            UI.showLoader(false);
+    // Controla a exibição do Modal de Nova Entrada
+    showNovoAtendimentoModal(show) {
+        const modal = document.getElementById('modal-novo-atendimento');
+        if (modal) {
+            modal.style.display = show ? 'flex' : 'none';
+        }
+    },
 
-            if (res.success) {
-                UI.showToast('Atendimento cadastrado com sucesso!', 'success');
-                UI.showNovoAtendimentoModal(false);
-                formAtendimento.reset();
-                UI.loadPatio();
-            } else {
-                UI.showToast('Erro ao salvar: ' + res.error, 'error');
+    // Alterna entre as telas/abas do sistema com proteção por senha
+    navegarPara(nomeAba) {
+        const abasProtegidas = ['configuracoes', 'financeiro', 'relatorios'];
+
+        // Se a aba for protegida, pede a senha
+        if (abasProtegidas.includes(nomeAba)) {
+            const pin = prompt("🔒 Área Restrita! Digite a senha administrativa:");
+            if (pin !== SENHA_ADMIN) {
+                this.showToast("❌ Senha incorreta! Acesso negado.", "error");
+                return;
             }
-        });
-    }
+        }
 
-    // 4. Registro do Service Worker para suporte a PWA
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then((reg) => console.log('[PWA] Service Worker registrado com sucesso:', reg.scope))
-                .catch((err) => console.error('[PWA] Falha ao registrar Service Worker:', err));
+        // Esconde todas as seções
+        document.querySelectorAll('.secao-app').forEach(secao => {
+            secao.style.display = 'none';
         });
+
+        // Mostra a seção desejada
+        const abaAlvo = document.getElementById(`aba-${nomeAba}`) || document.getElementById(nomeAba);
+        if (abaAlvo) {
+            abaAlvo.style.display = 'block';
+        }
+
+        // Atualiza os botões ativos no menu
+        document.querySelectorAll('.btn-nav').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const btnAtivo = document.querySelector(`[data-aba="${nomeAba}"]`);
+        if (btnAtivo) btnAtivo.classList.add('active');
+    },
+
+    // Carrega os veículos no Pátio
+    async loadPatio() {
+        this.showLoader(true);
+        const container = document.getElementById('patio-container');
+        if (!container) {
+            this.showLoader(false);
+            return;
+        }
+
+        const res = await DB.getAtendimentosPatio();
+        this.showLoader(false);
+
+        if (!res.success) {
+            this.showToast('Erro ao carregar o pátio', 'error');
+            return;
+        }
+
+        if (res.data.length === 0) {
+            container.innerHTML = '<p class="sem-dados">Nenhum veículo no pátio no momento.</p>';
+            return;
+        }
+
+        container.innerHTML = res.data.map(item => `
+            <div class="card-veiculo">
+                <div class="card-header">
+                    <h3>${item.placa_snapshot || 'SEM PLACA'}</h3>
+                    <span class="badge badge-patio">No Pátio</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Modelo:</strong> ${item.modelo_snapshot || '-'}</p>
+                    <p><strong>Cliente:</strong> ${item.cliente_nome_snapshot || '-'}</p>
+                    <p><strong>Tel:</strong> ${item.telefone_snapshot || '-'}</p>
+                    <p><strong>Valor:</strong> R$ ${parseFloat(item.valor_total || 0).toFixed(2)}</p>
+                    ${item.observacoes ? `<p><strong>Obs:</strong> ${item.observacoes}</p>` : ''}
+                </div>
+                <div class="card-actions">
+                    <button onclick="UI.imprimirComprovante('${item.id}')" class="btn btn-secondary">🖨️ Imprimir</button>
+                    <button onclick="UI.finalizarAtendimento('${item.id}')" class="btn btn-success">✅ Finalizar</button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    // Finalizar atendimento
+    async finalizarAtendimento(id) {
+        if (!confirm('Deseja finalizar este atendimento e dar saída ao veículo?')) return;
+        
+        this.showLoader(true);
+        const res = await DB.concluirAtendimento(id);
+        this.showLoader(false);
+
+        if (res.success) {
+            this.showToast('Atendimento finalizado com sucesso!', 'success');
+            this.loadPatio();
+        } else {
+            this.showToast('Erro ao finalizar atendimento', 'error');
+        }
+    },
+
+    // Imprimir comprovante de entrada/serviço
+    imprimirComprovante(id) {
+        window.print();
     }
-});
+};
