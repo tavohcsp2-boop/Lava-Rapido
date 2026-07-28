@@ -1,129 +1,133 @@
 /* ==========================================================================
-   INTERFAZE DE USUÁRIO E MANIPULAÇÃO DO DOM
+   INTERFACE DO USUÁRIO (UI) E NAVEGAÇÃO
    ========================================================================== */
 
+const SENHA_ADMIN = "1234"; // 🔒 Sua senha para acessar Configurações e Relatórios
+
 const UI = {
-    switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-        const activeBtn = document.querySelector(`button[onclick*="'${tabId}'"]`);
-        const activeTab = document.getElementById(`tab-${tabId}`);
-
-        if (activeBtn) activeBtn.classList.add('active');
-        if (activeTab) activeTab.classList.add('active');
-
-        if (tabId === 'patio') this.loadPatio();
-        if (tabId === 'crm') this.loadCRM();
-    },
-
-    async loadPatio() {
-        this.showLoader(true);
-        const patioGrid = document.getElementById('patio-grid');
-        patioGrid.innerHTML = '';
-
-        const atendimentos = await DB.getPatioAtendimentos();
-        this.showLoader(false);
-
-        if (atendimentos.length === 0) {
-            patioGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#777;">Nenhum veículo no pátio no momento.</p>';
-            return;
-        }
-
-        atendimentos.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            
-            let statusClass = 'status-patio';
-            if (item.status === 'LAVANDO') statusClass = 'status-lavagem';
-            if (item.status === 'CONCLUIDO') statusClass = 'status-concluido';
-
-            card.innerHTML = `
-                <span class="card-status ${statusClass}">${item.status}</span>
-                <h3><i class="fa-solid fa-car"></i> ${item.placa_snapshot} - ${item.modelo_snapshot || 'Sem modelo'}</h3>
-                <p><strong>Cliente:</strong> ${item.cliente_nome_snapshot || 'Não informado'}</p>
-                <p><strong>Valor:</strong> R$ ${parseFloat(item.valor_total || 0).toFixed(2)}</p>
-                <p style="font-size:0.8rem; color:#666; margin-top:5px;">${new Date(item.entrada_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                <div style="margin-top:12px; display:flex; gap:5px;">
-                    ${item.status === 'PATIO' ? `<button class="btn btn-primary" style="padding:4px 8px; font-size:0.8rem;" onclick="UI.alterarStatus('${item.id}', 'LAVANDO')">Iniciar Lavagem</button>` : ''}
-                    ${item.status === 'LAVANDO' ? `<button class="btn btn-success" style="padding:4px 8px; font-size:0.8rem;" onclick="UI.alterarStatus('${item.id}', 'CONCLUIDO')">Concluir</button>` : ''}
-                    ${item.status === 'CONCLUIDO' ? `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem;" onclick="UI.alterarStatus('${item.id}', 'ENTREGUE')">Entregar</button>` : ''}
-                </div>
-            `;
-            patioGrid.appendChild(card);
-        });
-    },
-
-    async alterarStatus(id, novoStatus) {
-        this.showLoader(true);
-        const res = await DB.updateStatusAtendimento(id, novoStatus);
-        this.showLoader(false);
-        if (res.success) {
-            this.showToast('Status atualizado!', 'success');
-            this.loadPatio();
-        } else {
-            this.showToast('Erro ao alterar status.', 'error');
-        }
-    },
-
-    async loadCRM() {
-        const crmList = document.getElementById('crm-list');
-        crmList.innerHTML = '';
-        const clientes = await DB.getClientes();
-
-        if (clientes.length === 0) {
-            crmList.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#777;">Nenhum cliente cadastrado.</p>';
-            return;
-        }
-
-        clientes.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <h3><i class="fa-solid fa-user"></i> ${c.nome}</h3>
-                <p><strong>Telefone:</strong> ${c.telefone || 'Não informado'}</p>
-                <p><strong>Pontos Fidelidade:</strong> ${c.fidelidade_pontos || 0}</p>
-            `;
-            crmList.appendChild(card);
-        });
-    },
-
-    showNovoAtendimentoModal(show) {
-        document.getElementById('modal-atendimento').style.display = show ? 'flex' : 'none';
-    },
-
-    showLoginModal() {
-        document.getElementById('modal-login').style.display = 'flex';
-    },
-
-    hideLoginModal() {
-        document.getElementById('modal-login').style.display = 'none';
-    },
-
-    updateUserDisplay(email) {
-        document.getElementById('current-user-name').innerText = email;
-    },
-
+    // Exibe ou esconde o indicador de carregamento
     showLoader(show) {
-        document.getElementById('global-loader').style.display = show ? 'flex' : 'none';
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = show ? 'flex' : 'none';
+        }
     },
 
-    showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
+    // Exibe mensagens de aviso (Toast)
+    showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        toast.innerText = message;
+        toast.textContent = message;
+        
+        const container = document.getElementById('toast-container') || document.body;
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     },
 
-    autoPreencherCliente(query) {
-        // Reservado para integração de auto-complete
+    // Controla a exibição do Modal de Nova Entrada
+    showNovoAtendimentoModal(show) {
+        const modal = document.getElementById('modal-novo-atendimento');
+        if (modal) {
+            modal.style.display = show ? 'flex' : 'none';
+        }
     },
 
-    saveSettings() {
-        const appName = document.getElementById('input-app-name').value;
-        document.getElementById('app-title').innerHTML = `<i class="fa-solid fa-car-wash"></i> ${appName}`;
-        this.showToast('Configurações salvas!', 'success');
+    // Alterna entre as telas/abas do sistema com proteção por senha
+    navegarPara(nomeAba) {
+        const abasProtegidas = ['configuracoes', 'financeiro', 'relatorios'];
+
+        // Se a aba for protegida, pede a senha
+        if (abasProtegidas.includes(nomeAba)) {
+            const pin = prompt("🔒 Área Restrita! Digite a senha administrativa:");
+            if (pin !== SENHA_ADMIN) {
+                this.showToast("❌ Senha incorreta! Acesso negado.", "error");
+                return;
+            }
+        }
+
+        // Esconde todas as seções
+        document.querySelectorAll('.secao-app').forEach(secao => {
+            secao.style.display = 'none';
+        });
+
+        // Mostra a seção desejada
+        const abaAlvo = document.getElementById(`aba-${nomeAba}`) || document.getElementById(nomeAba);
+        if (abaAlvo) {
+            abaAlvo.style.display = 'block';
+        }
+
+        // Atualiza os botões ativos no menu
+        document.querySelectorAll('.btn-nav').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const btnAtivo = document.querySelector(`[data-aba="${nomeAba}"]`);
+        if (btnAtivo) btnAtivo.classList.add('active');
+    },
+
+    // Carrega os veículos no Pátio
+    async loadPatio() {
+        this.showLoader(true);
+        const container = document.getElementById('patio-container');
+        if (!container) {
+            this.showLoader(false);
+            return;
+        }
+
+        const res = await DB.getAtendimentosPatio();
+        this.showLoader(false);
+
+        if (!res.success) {
+            this.showToast('Erro ao carregar o pátio', 'error');
+            return;
+        }
+
+        if (res.data.length === 0) {
+            container.innerHTML = '<p class="sem-dados">Nenhum veículo no pátio no momento.</p>';
+            return;
+        }
+
+        container.innerHTML = res.data.map(item => `
+            <div class="card-veiculo">
+                <div class="card-header">
+                    <h3>${item.placa_snapshot || 'SEM PLACA'}</h3>
+                    <span class="badge badge-patio">No Pátio</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Modelo:</strong> ${item.modelo_snapshot || '-'}</p>
+                    <p><strong>Cliente:</strong> ${item.cliente_nome_snapshot || '-'}</p>
+                    <p><strong>Tel:</strong> ${item.telefone_snapshot || '-'}</p>
+                    <p><strong>Valor:</strong> R$ ${parseFloat(item.valor_total || 0).toFixed(2)}</p>
+                    ${item.observacoes ? `<p><strong>Obs:</strong> ${item.observacoes}</p>` : ''}
+                </div>
+                <div class="card-actions">
+                    <button onclick="UI.imprimirComprovante('${item.id}')" class="btn btn-secondary">🖨️ Imprimir</button>
+                    <button onclick="UI.finalizarAtendimento('${item.id}')" class="btn btn-success">✅ Finalizar</button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    // Finalizar atendimento
+    async finalizarAtendimento(id) {
+        if (!confirm('Deseja finalizar este atendimento e dar saída ao veículo?')) return;
+        
+        this.showLoader(true);
+        const res = await DB.concluirAtendimento(id);
+        this.showLoader(false);
+
+        if (res.success) {
+            this.showToast('Atendimento finalizado com sucesso!', 'success');
+            this.loadPatio();
+        } else {
+            this.showToast('Erro ao finalizar atendimento', 'error');
+        }
+    },
+
+    // Imprimir comprovante de entrada/serviço
+    imprimirComprovante(id) {
+        window.print();
     }
 };
