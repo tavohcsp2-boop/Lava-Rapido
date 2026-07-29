@@ -2,7 +2,7 @@
    SERVICE WORKER - LAVA-RÁPIDO PRO PWA
    ========================================================================== */
 
-const CACHE_NAME = 'lava-rapido-v2'; 
+const CACHE_NAME = 'lava-rapido-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -12,6 +12,7 @@ const ASSETS_TO_CACHE = [
     './js/database.js',
     './js/auth.js',
     './js/ui.js',
+    './js/voice.js',
     './js/app.js',
     './manifest.json',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -48,7 +49,8 @@ self.addEventListener('activate', (event) => {
 
 // Interceptação de requisições de rede
 self.addEventListener('fetch', (event) => {
-    if (event.request.url.includes('supabase.co')) {
+    // Nunca cachear/ interceptar chamadas ao Supabase ou à API de transcrição da Groq
+    if (event.request.url.includes('supabase.co') || event.request.url.includes('groq.com')) {
         return;
     }
 

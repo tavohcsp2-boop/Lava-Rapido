@@ -3,6 +3,9 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Aplica personalização whitelabel salva localmente
+    UI.applyWhitelabel();
+
     // 1. Inicializar Autenticação
     Auth.init();
 
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 modelo_snapshot: document.getElementById('os-modelo').value,
                 cliente_nome_snapshot: document.getElementById('os-cliente').value,
                 telefone_snapshot: document.getElementById('os-telefone').value,
-                valor_total: parseFloat(document.getElementById('os-valor').value),
+                valor_total: parseFloat(document.getElementById('os-valor').value) || 0,
                 observacoes: document.getElementById('os-obs').value,
                 status: 'PATIO'
             };
@@ -48,7 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Registro do Service Worker para suporte a PWA
+    // 4. Botão de gravação de voz (IA)
+    const btnRecordVoice = document.getElementById('btn-record-voice');
+    if (btnRecordVoice) {
+        btnRecordVoice.addEventListener('click', () => Voice.toggleRecording());
+    }
+
+    // 5. Registro do Service Worker para suporte a PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')

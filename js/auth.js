@@ -11,7 +11,7 @@ const Auth = {
             this.currentUser = session.user;
             UI.updateUserDisplay(session.user.email);
             UI.hideLoginModal();
-            UI.loadPatio();
+            UI.startApp();
         } else {
             UI.showLoginModal();
         }
@@ -22,7 +22,7 @@ const Auth = {
                 this.currentUser = session.user;
                 UI.updateUserDisplay(session.user.email);
                 UI.hideLoginModal();
-                UI.loadPatio();
+                UI.startApp();
             } else {
                 this.currentUser = null;
                 UI.showLoginModal();

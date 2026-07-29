@@ -2,7 +2,6 @@
    COMPONENTES (CARDS, BOTÕES, MODAIS, TOASTS)
    ========================================================================== */
 
-/* Cards e Grids */
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -38,10 +37,7 @@
 .status-lavagem { background-color: #cce5ff; color: #004085; }
 .status-concluido { background-color: #d4edda; color: #155724; }
 
-/* Formulários e Botões */
-.form-group {
-    margin-bottom: 15px;
-}
+.form-group { margin-bottom: 15px; }
 
 .form-group label {
     display: block;
@@ -76,7 +72,6 @@
 .btn-success { background-color: var(--success-color); color: #fff; }
 .btn-danger { background-color: var(--danger-color); color: #fff; }
 
-/* Modais */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -97,7 +92,6 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Loader & Toasts */
 #global-loader {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -118,9 +112,7 @@
     animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 #toast-container {
     position: fixed;
@@ -143,6 +135,7 @@
 
 .toast-success { background-color: var(--success-color); }
 .toast-error { background-color: var(--danger-color); }
+.toast-info { background-color: var(--primary-color); }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
